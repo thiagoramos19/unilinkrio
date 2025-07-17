@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Perfeito</title>
+    <!-- Inclui o Tailwind CSS para estilização chique, bicha! -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Define a fonte Inter para todo mundo ficar no padrão */
+        body {
+            font-family: "Nunito", sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center; /* Centra horizontalmente o retângulo principal */
+            align-items: center; /* Centra verticalmente o retângulo principal */
+            min-height: 100vh; /* Garante que o corpo ocupa toda a altura da tela */
+            background-color: #fafafa; /* Um fundinho básico pra não brigar com o rosa */
+        }
+
+        /* Classes personalizadas para o tamanho exato dos inputs e botões */
+        .input-button-size {
+            width: 314px;
+            height: 35.5px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <!-- O retângulo principal, todo divo e centralizado, pelo amor da deusa! -->
+    <div class="w-[393px] h-[852px] border-4 border-black rounded-3xl
+                flex flex-col items-center justify-center p-8 bg-white shadow-xl space-y-6">
+
+        <!-- A logo do Unilink, porque a gente adora um glow up! -->
+        <img src="Armazenamento interno/index/index/img/logo_unilink.png" alt="Logo Unilink" class="rounded-lg mb-0"
+             onerror="this.onerror=null;this.src='https://placehold.co/236x229/000000/FFFFFF?text=LOGO+UNILINK';"
+             style="width: 236px; height: 229px;">
+
+        <!-- Aquele título pra você fazer seu login, viu? -->
+        <h2 class="text-2xl font-semibold text-gray-800 !mt-4">Faça seu login:</h2>
+
+        <!-- Caixa de texto para o Email, redondinha do jeito que a gente ama -->
+        <input type="email" id="emailInput" placeholder="Email @edu.unirio.br"
+               class="input-button-size border-2 border-gray-300 rounded-[18px] px-4 py-2 !mt-4
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700">
+
+        <!-- Caixa de texto para a Senha, toda discreta e segura -->
+        <input type="password" id="passwordInput" placeholder="Senha"
+               class="input-button-size border-2 border-gray-300 rounded-[18px] px-4 py-2 !mt-4
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700">
+
+        <!-- Espaço para a mensagem de erro, porque a gente não usa alert, a gente é sofisticada! -->
+        <div id="errorMessage" class="text-red-500 text-sm hidden !mt-4"></div>
+
+        <!-- Botão "Entrar", pra você meter as caras no sistema -->
+        <button id="loginButton" class="input-button-size bg-[#4f603e] text-white font-bold rounded-[18px] !mt-4
+                       hover:bg-opacity-90 transition duration-300 ease-in-out">
+            Entrar
+        </button>
+
+        <!-- Separador dramático, porque a vida é feita de escolhas, bicha! -->
+        <div class="text-gray-500 !mt-4">--------- Ou ---------</div>
+
+        <!-- Botão "Criar uma conta", com aquela transparência charmosa e direcionado! -->
+        <button id="createAccountButton" class="input-button-size bg-[#4f603e] bg-opacity-50 text-white font-bold rounded-[18px] !mt-4
+                       hover:bg-opacity-75 transition duration-300 ease-in-out">
+            Criar uma conta
+        </button>
+    </div>
+
+    <script>
+        // Pegando os elementos da tela, porque a gente é controladora
+        const emailInput = document.getElementById('emailInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginButton = document.getElementById('loginButton');
+        const createAccountButton = document.getElementById('createAccountButton');
+        const errorMessageDiv = document.getElementById('errorMessage');
+
+        // Adiciona um evento de clique para o botão de Entrar
+        loginButton.addEventListener('click', function() {
+            // Limpa a mensagem de erro anterior, porque a gente não vive de passado
+            errorMessageDiv.textContent = '';
+            errorMessageDiv.classList.add('hidden');
+
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            // Validação de luxo!
+            if (email === "ana.cristina@edu.unirio.br" && password === "adm123") {
+                window.location.href = "home1.html"; // Redireciona para a home, porque você merece!
+            } else if (email === "" && password === "") {
+                errorMessageDiv.textContent = 'Preencha todos os dados!'; // Ah, não deu! Avisa que deu ruim!
+                errorMessageDiv.classList.remove('hidden');
+            } 
+            else {
+                errorMessageDiv.textContent = 'Dados inválidos'; // Ah, não deu! Avisa que deu ruim!
+                errorMessageDiv.classList.remove('hidden');
+            }
+        });
+
+        // Adiciona um evento de clique para o botão de Criar uma conta
+        createAccountButton.addEventListener('click', function() {
+            window.location.href = "criarconta1.html"; // Vai direto pro cadastro, sem escalas!
+        });
+    </script>
+</body>
+</html>

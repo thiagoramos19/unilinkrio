@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seu Perfil - Unilink</title>
+    <!-- Inclui o Tailwind CSS para estilização chique, bicha! -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* A família Inter, porque a gente ama consistência e um visual clean! */
+        body {
+            font-family: "Nunito", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; /* Um fundinho neutro pra não brigar com o cabeçalho */
+            display: flex; /* Para centralizar o contêiner principal */
+            justify-content: center; /* Centra horizontalmente o contêiner principal */
+            align-items: center; /* Centra verticalmente o contêiner principal */
+            min-height: 100vh; /* Garante que o corpo ocupa toda a altura da tela */
+            overflow: hidden; /* Garante que não haja scrollbar no body */
+        }
+
+        /* Classes para os botões e inputs menores, com bordas arredondadas como a gente gosta */
+        .rounded-14px {
+            border-radius: 14px;
+        }
+
+        /* Estilo para o overlay da biografia */
+        .bio-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Fundo escuro */
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .bio-dialog {
+            background-color: #ff6479; /* Cor rosa */
+            width: 350px;
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+        .bio-dialog h2 {
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .bio-dialog textarea {
+            width: 100%;
+            height: 250px; /* Altura maior para a biografia */
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+            color: #333;
+            background-color: white;
+            border: 1px solid #ccc;
+            resize: none; /* Impede redimensionamento manual */
+            margin-bottom: 15px;
+        }
+        .bio-dialog .bio-buttons {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .bio-dialog .bio-button {
+            padding: 8px 15px;
+            border-radius: 14px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .bio-dialog .bio-button.red {
+            background-color: #e5a1ae; /* Rosa mais claro */
+            color: white;
+        }
+        .bio-dialog .bio-button.blue {
+            background-color: #004aad; /* Azul */
+            color: white;
+        }
+
+        /* Estilo para o overlay de ajuda */
+        .help-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Fundo escuro */
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .help-dialog {
+            background-color: white;
+            width: 350px;
+            max-height: 80%; /* Limita a altura para caber na tela */
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-y: auto; /* Adiciona scroll se o conteúdo for grande */
+        }
+        .help-dialog .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+        }
+        .help-dialog h2 {
+            color: #333;
+            font-weight: bold;
+            font-size: 20px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .help-dialog p, .help-dialog ul {
+            color: #555;
+            font-size: 14px;
+            text-align: left;
+            margin-bottom: 10px;
+        }
+        .help-dialog ul {
+            list-style: disc;
+            margin-left: 20px;
+        }
+
+        /* Força a classe hidden a ter display: none */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- O contêiner principal, com todo o charme do nosso retângulo e borda! -->
+    <div class="w-[393px] h-[852px] border-4 border-black rounded-3xl
+                flex flex-col bg-white shadow-xl overflow-hidden relative">
+        
+        <!-- O cabeçalho da página de Perfil -->
+        <header class="w-full h-[60px] bg-[#e5a1ae] flex items-center justify-between px-4 shadow-md z-10">
+            <!-- Título "unilink" à esquerda, em negrito e branco divo! -->
+            <div class="text-white font-bold text-xl">unilink</div>
+            
+            <!-- Botão de Ajuda à direita -->
+            <button id="helpButton" class="text-white text-xl font-bold w-[36px] h-[36px] rounded-full bg-transparent flex items-center justify-center">
+                ? <!-- Ícone de interrogação ou outro ícone de ajuda -->
+            </button>
+        </header>
+
+        <!-- Conteúdo principal do Perfil -->
+        <main class="flex-grow overflow-y-auto overflow-x-hidden p-4 relative z-0 flex flex-col items-center">
+            <!-- Imagem de Perfil -->
+            <img src="img/maria.png" alt="Foto de Perfil da Maria" class="w-[120px] h-[120px] rounded-full object-cover mb-4"
+                 onerror="this.onerror=null;this.src='https://placehold.co/120x120/cccccc/000000?text=M';">
+            
+            <!-- Nome e Idade -->
+            <span class="text-xl font-bold text-gray-800 mb-6">Maria, 18</span>
+
+            <!-- Seção de Dados -->
+            <div class="w-full text-left mb-8">
+                <h2 class="text-lg font-bold text-gray-800 mb-2">Dados:</h2>
+                <p class="text-gray-700 mb-1">Nome: Maria Salgado</p>
+                <p class="text-gray-700 mb-1">Idade: 18</p>
+                <p class="text-gray-700 mb-1">Curso: Letras - CLA</p>
+            </div>
+
+            <!-- Botão Mostrar/Editar Biografia -->
+            <button id="toggleBioButton" class="bg-[#ff7a28] text-white font-bold py-3 px-8 rounded-14px text-lg shadow-md mb-8">
+                Mostrar/Editar Biografia
+            </button>
+
+            <!-- Seção Dashboard -->
+            <div class="w-full text-left">
+                <h2 class="text-lg font-bold text-gray-800 mb-2">Dashboard:</h2>
+                <!-- Dashboard como imagem -->
+                <img src="img/dashboard.png" alt="Dashboard de Estatísticas" class="w-full h-auto rounded-lg shadow-md">
+            </div>
+        </main>
+
+        <!-- Rodapé DIVO! Fixo na parte inferior do contêiner principal -->
+        <footer class="w-full h-[60px] bg-[#4f603e] flex items-center justify-around px-4 z-10">
+            <!-- Ícone Home -->
+            <a href="home1.html">
+                <img src="img/home.png" alt="Ícone Home" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=H';">
+            </a>
+            
+            <!-- Ícone Pesquisar -->
+            <a href="usuarios.html">
+                <img src="img/pesquisar.png" alt="Ícone Pesquisar" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=P';">
+            </a>
+
+            <!-- Ícone Quiz -->
+            <a href="quiz.html">
+                <img src="img/quiz.png" alt="Ícone Quiz" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=Q';">
+            </a>
+
+            <!-- Ícone Jogaprolo -->
+            <a href="jogaprolo.html">
+                <img src="img/jogaprolo.png" alt="Ícone Jogaprolo" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=J';">
+            </a>
+
+            <!-- Ícone Agenda -->
+            <a href="agenda.html">
+                <img src="img/agenda.png" alt="Ícone Agenda" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=A';">
+            </a>
+
+            <!-- Ícone Seu Perfil -->
+            <a href="seuperfil.html">
+                <img src="img/seuperfil.png" alt="Ícone Seu Perfil" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=S';">
+            </a>
+        </footer>
+    </div>
+
+    <!-- Overlay de Biografia (Inicialmente escondido) -->
+    <div id="bioOverlay" class="bio-overlay hidden">
+        <div class="bio-dialog">
+            <h2>Editar Biografia</h2>
+            <textarea id="bioTextarea">
+Três coisas que amo:
+• Ficar presa em fanfics com 300 capítulos
+• Fazer playlists que começam fofas e terminam em sofrência
+• Tomar café como se fosse a última gota de felicidade do dia
+
+Sobre mim em uma frase:
+"Faço drama como quem respira e sempre tenho uma teoria conspiratória sobre os professores."
+
+Meu mood atual:
+"Procurando alguém pra reclamar da correção das redações e pra dividir PDF proibido."
+            </textarea>
+            <div class="bio-buttons">
+                <button id="bioBackButton" class="bio-button red">Voltar</button>
+                <button id="bioConcluirButton" class="bio-button blue">Concluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay de Ajuda (NOVO!) -->
+    <div id="helpOverlay" class="help-overlay hidden">
+        <div class="help-dialog">
+            <button id="closeHelpButton" class="close-button">&times;</button>
+            <h2>Central de Ajuda</h2>
+            <p>Bem-vinda à Central de Ajuda do Unilink! Aqui você encontra informações sobre como usar o aplicativo.</p>
+            <h3>Como usar o Feed:</h3>
+            <ul>
+                <li>Role para ver as últimas publicações.</li>
+                <li>Clique nos stories para ver o conteúdo rápido.</li>
+                <li>Use o filtro para encontrar posts por campus ou vagas de emprego.</li>
+            </ul>
+            <h3>Como usar o Chat:</h3>
+            <ul>
+                <li>Clique no ícone de DM no cabeçalho para ver suas conversas.</li>
+                <li>Toque em uma conversa para abri-la.</li>
+                <li>Digite sua mensagem e clique na seta para enviar.</li>
+            </ul>
+            <h3>Como usar o Joga pra Rolo:</h3>
+            <ul>
+                <li>Veja ofertas na aba "Ofertas".</li>
+                <li>Acompanhe seus pedidos na aba "Meus Pedidos".</li>
+                <li>Clique em "Comprar!" para ver os detalhes de pagamento.</li>
+            </ul>
+            <h3>Como usar o Quiz:</h3>
+            <ul>
+                <li>Inicie o quiz para descobrir seu RioMatch.</li>
+                <li>Responda às perguntas e monte seu pódio.</li>
+                <li>Raspe o card para revelar seu resultado!</li>
+            </ul>
+            <p>Se precisar de mais ajuda, entre em contato com o suporte!</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBioButton = document.getElementById('toggleBioButton');
+            const bioOverlay = document.getElementById('bioOverlay');
+            const bioTextarea = document.getElementById('bioTextarea');
+            const bioBackButton = document.getElementById('bioBackButton');
+            const bioConcluirButton = document.getElementById('bioConcluirButton');
+
+            const helpButton = document.getElementById('helpButton');
+            const helpOverlay = document.getElementById('helpOverlay');
+            const closeHelpButton = document.getElementById('closeHelpButton');
+
+
+            // Lógica para mostrar/esconder o overlay da biografia
+            if (toggleBioButton) {
+                toggleBioButton.addEventListener('click', () => {
+                    if (bioOverlay) {
+                        bioOverlay.classList.remove('hidden');
+                    }
+                });
+            }
+
+            // Lógica para fechar o overlay da biografia
+            if (bioBackButton) {
+                bioBackButton.addEventListener('click', () => {
+                    if (bioOverlay) {
+                        bioOverlay.classList.add('hidden');
+                    }
+                });
+            }
+
+            if (bioConcluirButton) {
+                bioConcluirButton.addEventListener('click', () => {
+                    // Aqui você adicionaria a lógica para salvar as edições da biografia
+                    console.log("Nova biografia salva:", bioTextarea.value);
+                    alert('Biografia salva (funcionalidade de salvar a ser implementada)!');
+                    if (bioOverlay) {
+                        bioOverlay.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Lógica para mostrar/esconder o overlay de ajuda
+            if (helpButton) {
+                helpButton.addEventListener('click', () => {
+                    if (helpOverlay) {
+                        helpOverlay.classList.remove('hidden');
+                    }
+                });
+            }
+
+            // Lógica para fechar o overlay de ajuda
+            if (closeHelpButton) {
+                closeHelpButton.addEventListener('click', () => {
+                    if (helpOverlay) {
+                        helpOverlay.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Fechar overlay de ajuda ao clicar fora do dialog
+            if (helpOverlay) {
+                helpOverlay.addEventListener('click', (event) => {
+                    if (event.target === helpOverlay) {
+                        helpOverlay.classList.add('hidden');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

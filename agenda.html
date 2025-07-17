@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda - Unilink</title>
+    <!-- Inclui o Tailwind CSS para estilização chique, bicha! -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* A família Inter, porque a gente ama consistência e um visual clean! */
+        body {
+            font-family: "Nunito", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; /* Um fundinho neutro pra não brigar com o cabeçalho */
+            display: flex; /* Para centralizar o contêiner principal */
+            justify-content: center; /* Centra horizontalmente o contêiner principal */
+            align-items: center; /* Centra verticalmente o contêiner principal */
+            min-height: 100vh; /* Garante que o corpo ocupa toda a altura da tela */
+            overflow: hidden; /* Garante que não haja scrollbar no body */
+        }
+
+        /* Classes para os botões e inputs menores, com bordas arredondadas como a gente gosta */
+        .rounded-14px {
+            border-radius: 14px;
+        }
+
+        /* Estilos para o botão de evento principal */
+        .event-button {
+            width: 350px;
+            height: 70px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            margin-bottom: 15px; /* Espaçamento entre os eventos */
+        }
+        .event-button:hover {
+            background-color: #f5f5f5;
+        }
+        .event-button .profile-img {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+        .event-button .details {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .event-button .title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+        }
+        .event-button .more-details {
+            background-color: #FFD700; /* Amarelo vibrante */
+            color: black;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            margin-top: 5px;
+            cursor: pointer;
+        }
+
+        /* Estilos para o overlay de detalhes do evento */
+        .event-details-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Fundo escuro */
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .event-details-dialog {
+            background-color: white;
+            width: 393px; /* Largura da tela do celular */
+            height: 852px; /* Altura da tela do celular */
+            border: 4px solid black;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        .event-details-header {
+            background-color: #e5a1ae;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .event-details-header .title {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            flex-grow: 1;
+            text-align: center;
+        }
+        .event-details-main {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .event-details-main .event-poster {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .event-details-main .presence-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 15px;
+            flex-wrap: wrap; /* Permite que os itens quebrem linha se necessário */
+        }
+        .event-details-main .confirm-presence-button-wrapper {
+            background-color: #ff7a28; /* Laranja */
+            color: white;
+            font-weight: bold;
+            padding: 10px 15px; /* Ajustado padding */
+            border-radius: 14px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5px; /* Espaçamento entre os elementos */
+        }
+        .event-details-main .confirm-presence-button-wrapper .sim-button {
+            background-color: #39e54a; /* Verde vibrante */
+            color: white;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            margin-left: 8px;
+        }
+        .event-details-main .confirmed-count {
+            background-color: #ff7a28; /* Laranja */
+            color: white;
+            font-weight: bold;
+            padding: 10px 15px; /* Ajustado padding */
+            border-radius: 14px;
+            font-size: 14px;
+            margin: 5px; /* Espaçamento entre os elementos */
+            display: inline-block;
+        }
+        .event-details-main .map-card {
+            width: 100%;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .event-details-main .map-card .map-img {
+            width: 100%;
+            height: 200px; /* Altura fixa do mapa */
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .event-details-main .map-card .open-map-button {
+            background-color: #ff6479; /* Rosa */
+            color: white;
+            font-weight: bold;
+            padding: 8px 15px;
+            border-radius: 14px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* Estilos para o overlay do mapa */
+        .map-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Fundo escuro */
+            z-index: 110;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .map-details-dialog {
+            background-color: white;
+            width: 393px; /* Largura da tela do celular */
+            height: 852px; /* Altura da tela do celular */
+            border: 4px solid black;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        .map-details-header {
+            background-color: #e5a1ae;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .map-details-header .back-button {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .map-details-header .title {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            flex-grow: 1;
+            text-align: center;
+        }
+        .map-details-main {
+            flex-grow: 1;
+            overflow: hidden; /* O mapa em si pode ter zoom/pan, mas o container não tem scroll */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .map-details-main img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Garante que a imagem preencha o espaço */
+        }
+
+        /* Força a classe hidden a ter display: none */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Estilos para o overlay de seleção de mês */
+        .month-selection-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Escurece 50% */
+            z-index: 20; /* Fica acima do conteúdo principal, mas abaixo do dialog */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Alinha ao topo para aparecer abaixo do botão */
+        }
+        .month-selection-dialog {
+            /* Calculo do top: altura do header (60px) + padding-top do main (20px) + altura do botão de filtro (38px) + um pouco de margem (10px) */
+            top: calc(60px + 20px + 38px + 10px); 
+            position: absolute; /* Posicionamento absoluto para ficar abaixo do botão */
+            left: 50%;
+            transform: translateX(-50%); /* Centraliza horizontalmente */
+            width: 350px; /* Largura do dialog */
+            background-color: #ffb5a6; /* Cor verde para o filtro */
+            border-radius: 14px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 12px;
+            z-index: 30; /* Acima do overlay */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .month-selection-dialog h3 {
+            color: rgb(0, 0, 0);
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .month-selection-dialog .month-select {
+            background-color: #e86b70; /* Cor rosa para o select */
+            color: white;
+            font-weight: bold;
+            padding: 8px 15px;
+            border-radius: 10px;
+            margin: 5px 0;
+            width: 80%; /* Ocupa boa parte da largura */
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            border: none; /* Remove a borda padrão do select */
+            -webkit-appearance: none; /* Remove seta padrão em Webkit */
+            -moz-appearance: none; /* Remove seta padrão em Firefox */
+            appearance: none; /* Remove seta padrão */
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'); /* Seta customizada */
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+
+        /* Estilos para o overlay de criar evento */
+        .create-event-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Fundo escuro */
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .create-event-dialog {
+            background-color: #026dad; /* Cor azul suave */
+            background: #026dad; /* Degradê */
+            width: 393px;
+            height: 852px;
+            border: 4px solid black;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        .create-event-dialog header {
+            background-color: #026dad;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .create-event-dialog main {
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .create-event-dialog input[type="text"],
+        .create-event-dialog textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            border: 2px solid #e2e8f0;
+            font-size: 16px;
+            color: #4a5568;
+            outline: none;
+            margin-bottom: 15px;
+            background-color: white; /* Fundo branco para inputs */
+        }
+        .create-event-dialog textarea {
+            height: 120px; /* Altura maior para descrição */
+            resize: none; /* Impede redimensionamento manual */
+        }
+        .create-event-dialog footer {
+            width: 100%;
+            height: 60px;
+            background-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Ajustado para espaçar os itens */
+            padding: 0 16px;
+        }
+        .create-event-dialog footer .icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        .create-event-dialog footer .icon-item img {
+            width: 29px;
+            height: 29px;
+            object-fit: contain;
+            margin-bottom: 4px;
+        }
+        .create-event-dialog footer .icon-item span {
+            font-size: 14px;
+            color: #000000;
+        }
+    </style>
+</head>
+<body>
+    <!-- O contêiner principal, com todo o charme do nosso retângulo e borda! -->
+    <div class="w-[393px] h-[852px] border-4 border-black rounded-3xl
+                flex flex-col bg-white shadow-xl overflow-hidden relative">
+        
+        <!-- O cabeçalho da página de Agenda -->
+        <header class="w-full h-[60px] bg-[#e5a1ae] flex items-center justify-between px-4 shadow-md z-10">
+            <!-- Título "unilink" no centro, em negrito e branco divo! -->
+            <div class="flex-grow text-center text-white font-bold text-xl">unilink</div>
+        </header>
+        <div class="w-[210px] h-[29px] bg-[#ff6479] rounded-14px flex items-center justify-between px-2 relative mx-auto mt-4 mb-4">
+                <button id="eventsTab" class="tab-button active mr-2">Eventos Junho</button>
+                
+                <!-- Botão de Filtro com ícone, AGORA DENTRO DO RETÂNGULO E ALINHADO! -->
+                <button id="filterEventsButton" class="w-[60px] h-[22px] bg-[#ffb5a6] rounded-14px
+                                     flex items-center justify-center shadow-md ml-auto tab-button inactive">
+                    <img src="img/filtro_icon.png" alt="Ícone de Filtro" class="w-[15px] h-[15px] object-contain"
+                         onerror="this.onerror=null;this.src='https://placehold.co/15x15/ffb5a6/000000?text=F';"
+                         title="Filtro">
+                </button>
+            </div>
+        <!-- Abas de Eventos -->
+      
+
+        <!-- Conteúdo principal da Agenda -->
+        <main id="agendaContent" class="flex-grow overflow-y-auto overflow-x-hidden p-4 relative z-0 flex flex-col items-center">
+            <!-- Eventos serão injetados aqui pelo JavaScript -->
+        </main>
+
+        <!-- Botão Flutuante de Adição (Criar Evento) -->
+        <button id="createEventFab" class="absolute bottom-[80px] right-[20px] w-[50px] h-[50px] rounded-full bg-[#026dad] border-[2px] border-black flex items-center justify-center text-white text-3xl font-bold shadow-lg z-40">
+            +
+        </button>
+
+        <!-- Rodapé DIVO! Fixo na parte inferior do contêiner principal -->
+        <footer class="w-full h-[60px] bg-[#4f603e] flex items-center justify-around px-4 z-10">
+            <!-- Ícone Home -->
+            <a href="home1.html">
+                <img src="img/home.png" alt="Ícone Home" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=H';">
+            </a>
+            
+            <!-- Ícone Pesquisar -->
+            <a href="usuarios.html">
+                <img src="img/pesquisar.png" alt="Ícone Pesquisar" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=P';">
+            </a>
+
+            <!-- Ícone Quiz -->
+            <a href="quiz.html">
+                <img src="img/quiz.png" alt="Ícone Quiz" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=Q';">
+            </a>
+
+            <!-- Ícone Jogaprolo -->
+            <a href="jogaprolo.html">
+                <img src="img/jogaprolo.png" alt="Ícone Jogaprolo" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=J';">
+            </a>
+
+            <!-- Ícone Agenda -->
+            <a href="agenda.html">
+                <img src="img/agenda.png" alt="Ícone Agenda" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=A';">
+            </a>
+
+            <!-- Ícone Seu Perfil -->
+            <a href="seuperfil.html">
+                <img src="img/seuperfil.png" alt="Ícone Seu Perfil" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=S';">
+            </a>
+        </footer>
+    </div>
+
+    <!-- Overlay de Detalhes do Evento (Inicialmente escondido) -->
+    <div id="eventDetailsOverlay" class="event-details-overlay hidden">
+        <div class="event-details-dialog">
+            <header class="event-details-header">
+                <button id="backToEventsButton" class="back-button">&larr;</button>
+                <div class="profile-info flex items-center flex-grow justify-center">
+                    <img id="eventDetailProfileImg" src="img/eventprofile.png" alt="Perfil do Evento" class="profile-img mr-2">
+                    <span id="eventDetailTitle" class="title">Título do Evento</span>
+                </div>
+                <div></div> <!-- Espaçador para alinhar o título -->
+            </header>
+            <main class="event-details-main">
+                <img id="eventDetailPoster" src="img/poster.png" alt="Poster do Evento" class="event-poster">
+                
+                <div class="presence-info">
+                    <span id="confirmedCount" class="confirmed-count">143 Confirmaram presença</span>
+                    <button id="confirmPresenceButton" class="confirm-presence-button-wrapper">
+                        Confirmar presença também? <span class="sim-button">Sim!</span>
+                    </button>
+                </div>
+
+                <div class="map-card">
+                    <h3 class="font-bold text-lg text-gray-800 mb-2">Como chegar?</h3>
+                    <img id="eventDetailMapImg" src="img/minimapa.png" alt="Mapa do Evento" class="map-img">
+                    <button id="openMapButton" class="open-map-button">Abrir Mapa</button>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Overlay de Detalhes do Mapa (Inicialmente escondido) -->
+    <div id="mapOverlay" class="map-overlay hidden">
+        <div class="map-details-dialog">
+            <header class="map-details-header">
+                <button id="backToEventDetailsButton" class="back-button">&larr;</button>
+                <div class="title">unilink</div>
+                <div></div> <!-- Espaçador -->
+            </header>
+            <main class="map-details-main">
+                <img id="fullMapImage" src="img/mapa.png" alt="Mapa Detalhado">
+            </main>
+        </div>
+    </div>
+
+    <!-- Overlay de Seleção de Mês (NOVO!) -->
+    <div id="monthSelectionOverlay" class="month-selection-overlay hidden">
+        <div class="month-selection-dialog">
+            <h3>Selecionar Mês</h3>
+            <select id="monthSelect" class="month-select">
+                <option value="janeiro">Janeiro</option>
+                <option value="fevereiro">Fevereiro</option>
+                <option value="março">Março</option>
+                <option value="abril">Abril</option>
+                <option value="maio">Maio</option>
+                <option value="junho" selected>Junho</option> <!-- "Junho" selecionado por padrão -->
+                <option value="julho">Julho</option>
+                <option value="agosto">Agosto</option>
+                <option value="setembro">Setembro</option>
+                <option value="outubro">Outubro</option>
+                <option value="novembro">Novembro</option>
+                <option value="dezembro">Dezembro</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Overlay de Criar Evento (NOVO!) -->
+    <div id="createEventOverlay" class="create-event-overlay hidden">
+        <div class="create-event-dialog">
+            <header>
+                <button id="closeCreateEventButton" class="text-white text-2xl font-bold">
+                    &larr; <!-- Seta para a esquerda -->
+                </button>
+                <div class="text-white font-bold text-xl">Criar Evento</div>
+                <button id="publishEventButton" class="text-white font-bold text-base">
+                    Publicar
+                </button>
+            </header>
+
+            <main>
+                <input type="text" id="eventTitleInput" placeholder="Título do Evento" class="text-left">
+                <input type="text" id="eventDateInput" placeholder="Data (DD/MM/AAAA)" class="text-left">
+                <input type="text" id="eventTimeInput" placeholder="Hora (HH:MM)" class="text-left">
+                <input type="text" id="eventLocationInput" placeholder="Local do Evento" class="text-left">
+                <textarea id="eventDescriptionInput" placeholder="Descrição do Evento..."></textarea>
+            </main>
+
+            <footer>
+                <div class="icon-item">
+                    <img src="img/imagem.png" alt="Adicionar Imagem" onerror="this.onerror=null;this.src='https://placehold.co/29x29/cccccc/FFFFFF?text=IMG';">
+                    <span>Imagem</span>
+                </div>
+                <div class="icon-item">
+                    <img src="img/mapa_icon.png" alt="Adicionar Localização" onerror="this.onerror=null;this.src='https://placehold.co/29x29/cccccc/FFFFFF?text=MAPA';">
+                    <span>Local</span>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const agendaContent = document.getElementById('agendaContent');
+            const eventsTab = document.getElementById('eventsTab');
+            const filterEventsButton = document.getElementById('filterEventsButton');
+            const createEventFab = document.getElementById('createEventFab');
+
+            // Event Details Overlay elements
+            const eventDetailsOverlay = document.getElementById('eventDetailsOverlay');
+            const backToEventsButton = document.getElementById('backToEventsButton');
+            const eventDetailProfileImg = document.getElementById('eventDetailProfileImg');
+            const eventDetailTitle = document.getElementById('eventDetailTitle');
+            const eventDetailPoster = document.getElementById('eventDetailPoster');
+            const confirmPresenceButton = document.getElementById('confirmPresenceButton');
+            const confirmedCount = document.getElementById('confirmedCount');
+            const eventDetailMapImg = document.getElementById('eventDetailMapImg');
+            const openMapButton = document.getElementById('openMapButton');
+
+            // Map Overlay elements
+            const mapOverlay = document.getElementById('mapOverlay');
+            const backToEventDetailsButton = document.getElementById('backToEventDetailsButton');
+            const fullMapImage = document.getElementById('fullMapImage');
+
+            // Month Selection Overlay elements
+            const monthSelectionOverlay = document.getElementById('monthSelectionOverlay');
+            const monthSelect = document.getElementById('monthSelect');
+
+            // Create Event Overlay elements
+            const createEventOverlay = document.getElementById('createEventOverlay');
+            const closeCreateEventButton = document.getElementById('closeCreateEventButton');
+            const publishEventButton = document.getElementById('publishEventButton');
+            const eventTitleInput = document.getElementById('eventTitleInput');
+            const eventDateInput = document.getElementById('eventDateInput');
+            const eventTimeInput = document.getElementById('eventTimeInput');
+            const eventLocationInput = document.getElementById('eventLocationInput');
+            const eventDescriptionInput = document.getElementById('eventDescriptionInput');
+
+
+            // Dados de exemplo para eventos
+            const events = [
+                {
+                    id: 'evento1',
+                    profileImg: 'img/atletica_adm.png',
+                    title: 'Acende o farol - Atlética ADM',
+                    poster: 'img/acende_o_farol_poster.png',
+                    confirmed: 143,
+                    mapImg: 'img/mapa_praia.png',
+                    fullMap: 'img/mapa_detalhado.png',
+                    month: 'junho'
+                },
+                {
+                    id: 'evento2',
+                    profileImg: 'https://placehold.co/42x42/000000/FFFFFF?text=E2',
+                    title: 'Festa de Boas-Vindas - BSI',
+                    poster: 'https://placehold.co/350x300/ADD8E6/000000?text=POSTER+BSI',
+                    confirmed: 80,
+                    mapImg: 'https://placehold.co/350x200/ADD8E6/000000?text=MAPA+BSI',
+                    fullMap: 'https://placehold.co/393x792/ADD8E6/000000?text=MAPA+BSI+GRANDE',
+                    month: 'agosto'
+                },
+                {
+                    id: 'evento3',
+                    profileImg: 'https://placehold.co/42x42/000000/FFFFFF?text=E3',
+                    title: 'Semana de História',
+                    poster: 'https://placehold.co/350x300/FFC0CB/000000?text=POSTER+HIST',
+                    confirmed: 50,
+                    mapImg: 'https://placehold.co/350x200/FFC0CB/000000?text=MAPA+HIST',
+                    fullMap: 'https://placehold.co/393x792/FFC0CB/000000?text=MAPA+HIST+GRANDE',
+                    month: 'outubro'
+                }
+            ];
+
+            function renderEvents(monthFilter = null) {
+                agendaContent.innerHTML = '';
+                const filteredEvents = monthFilter === 'todos' || monthFilter === null
+                    ? events
+                    : events.filter(event => event.month === monthFilter);
+
+                if (filteredEvents.length === 0) {
+                    agendaContent.innerHTML = '<p class="text-gray-600 text-center mt-10">Nenhum evento encontrado para o mês selecionado.</p>';
+                    return;
+                }
+
+                filteredEvents.forEach(event => {
+                    const eventButton = document.createElement('div');
+                    eventButton.classList.add('event-button');
+                    eventButton.innerHTML = `
+                        <img src="${event.profileImg}" alt="Perfil do Evento" class="profile-img"
+                             onerror="this.onerror=null;this.src='https://placehold.co/42x42/cccccc/000000?text=P';">
+                        <div class="details">
+                            <span class="title">${event.title}</span>
+                            <button class="more-details" data-event-id="${event.id}">Mais detalhes</button>
+                        </div>
+                    `;
+                    agendaContent.appendChild(eventButton);
+                });
+
+                // Adiciona event listeners para os botões "Mais detalhes"
+                agendaContent.querySelectorAll('.more-details').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const eventId = event.target.dataset.eventId;
+                        const selectedEvent = events.find(e => e.id === eventId);
+                        if (selectedEvent) {
+                            // Preenche e mostra o overlay de detalhes do evento
+                            eventDetailProfileImg.src = selectedEvent.profileImg;
+                            eventDetailProfileImg.onerror = function() { this.onerror=null;this.src='https://placehold.co/42x42/cccccc/000000?text=P'; };
+                            eventDetailTitle.textContent = selectedEvent.title;
+                            eventDetailPoster.src = selectedEvent.poster;
+                            eventDetailPoster.onerror = function() { this.onerror=null;this.src='https://placehold.co/350x300/cccccc/000000?text=POSTER+ERRO'; };
+                            
+                            // Lógica para o botão de confirmar presença
+                            confirmedCount.textContent = `${selectedEvent.confirmed} Confirmaram presença`;
+                            confirmedCount.classList.remove('hidden'); // Garante que a contagem esteja visível
+                            confirmPresenceButton.classList.remove('hidden'); // Garante que o botão esteja visível
+                            
+                            confirmPresenceButton.onclick = () => {
+                                // Apenas atualiza a contagem e o texto do span de contagem
+                                selectedEvent.confirmed += 1; // Incrementa a contagem no objeto de dados
+                                confirmedCount.textContent = `${selectedEvent.confirmed} Presença Confirmada! Aproveite!`; // Atualiza o texto
+                                confirmPresenceButton.classList.add('hidden'); // Esconde o botão após confirmar
+                            };
+
+                            eventDetailMapImg.src = selectedEvent.mapImg;
+                            eventDetailMapImg.onerror = function() { this.onerror=null;this.src='https://placehold.co/350x200/cccccc/000000?text=MAPA+ERRO'; };
+                            
+                            eventDetailsOverlay.classList.remove('hidden');
+                        }
+                    });
+                });
+            }
+
+            // Lógica das abas (Eventos Junho / Filtro)
+            eventsTab.addEventListener('click', () => {
+                eventsTab.classList.add('active');
+                eventsTab.classList.remove('inactive');
+                filterEventsButton.classList.remove('active');
+                filterEventsButton.classList.add('inactive');
+                renderEvents(monthSelect.value); // Renderiza eventos do mês selecionado atualmente
+            });
+
+            filterEventsButton.addEventListener('click', () => {
+                filterEventsButton.classList.add('active');
+                filterEventsButton.classList.remove('inactive');
+                eventsTab.classList.remove('active');
+                eventsTab.classList.add('inactive');
+                // Abre o overlay de seleção de mês
+                monthSelectionOverlay.classList.remove('hidden');
+            });
+
+            // Lógica para fechar o overlay de detalhes do evento
+            if (backToEventsButton) {
+                backToEventsButton.addEventListener('click', () => {
+                    eventDetailsOverlay.classList.add('hidden');
+                });
+            }
+
+            // Lógica para abrir o overlay do mapa
+            if (openMapButton) {
+                openMapButton.addEventListener('click', () => {
+                    const selectedEvent = events.find(e => e.title === eventDetailTitle.textContent); // Busca o evento pelo título
+                    if (selectedEvent && fullMapImage) {
+                        fullMapImage.src = selectedEvent.fullMap;
+                        fullMapImage.onerror = function() { this.onerror=null;this.src='https://placehold.co/393x792/cccccc/000000?text=MAPA+GRANDE+ERRO'; };
+                        mapOverlay.classList.remove('hidden');
+                    }
+                });
+            }
+
+            // Lógica para fechar o overlay do mapa
+            if (backToEventDetailsButton) {
+                backToEventDetailsButton.addEventListener('click', () => {
+                    mapOverlay.classList.add('hidden');
+                });
+            }
+
+            // Lógica para o botão flutuante de criar evento
+            if (createEventFab) {
+                createEventFab.addEventListener('click', () => {
+                    createEventOverlay.classList.remove('hidden'); // Abre o overlay de criar evento
+                    // Limpa os campos do formulário
+                    eventTitleInput.value = '';
+                    eventDateInput.value = '';
+                    eventTimeInput.value = '';
+                    eventLocationInput.value = '';
+                    eventDescriptionInput.value = '';
+                });
+            }
+
+            // Lógica para fechar o overlay de Criar Evento
+            if (closeCreateEventButton) {
+                closeCreateEventButton.addEventListener('click', () => {
+                    createEventOverlay.classList.add('hidden');
+                });
+            }
+
+            // Lógica para Publicar o Evento
+            if (publishEventButton) {
+                publishEventButton.addEventListener('click', () => {
+                    const title = eventTitleInput.value.trim();
+                    const date = eventDateInput.value.trim();
+                    const time = eventTimeInput.value.trim();
+                    const location = eventLocationInput.value.trim();
+                    const description = eventDescriptionInput.value.trim();
+
+                    if (title && date && time && location && description) {
+                        const newEvent = {
+                            id: `evento${events.length + 1}`, // ID simples
+                            profileImg: 'https://placehold.co/42x42/004aad/FFFFFF?text=NOVO', // Placeholder para novo evento
+                            title: title,
+                            poster: 'https://placehold.co/350x300/004aad/FFFFFF?text=NOVO+EVENTO', // Placeholder de poster
+                            confirmed: 0,
+                            mapImg: 'https://placehold.co/350x200/004aad/FFFFFF?text=MAPA', // Placeholder de mapa
+                            fullMap: 'https://placehold.co/393x792/004aad/FFFFFF?text=MAPA+GRANDE', // Placeholder de mapa grande
+                            month: new Date(date.split('/')[2], date.split('/')[1] - 1, date.split('/')[0]).toLocaleString('pt-BR', { month: 'long' }) // Pega o mês da data
+                        };
+                        events.push(newEvent); // Adiciona o novo evento aos dados
+                        renderEvents(monthSelect.value); // Renderiza a lista de eventos atualizada
+                        createEventOverlay.classList.add('hidden'); // Fecha o overlay
+                        alert('Evento publicado com sucesso!');
+                    } else {
+                        alert('Por favor, preencha todos os campos para criar o evento.');
+                    }
+                });
+            }
+
+            // Lógica para seleção de mês no overlay
+            if (monthSelectionOverlay) {
+                // Clica no overlay (fundo escurecido) para fechar o dialog
+                monthSelectionOverlay.addEventListener('click', (event) => {
+                    if (event.target === monthSelectionOverlay) {
+                        monthSelectionOverlay.classList.add('hidden');
+                    }
+                });
+
+                // Lógica para o select de meses
+                if (monthSelect) {
+                    // Define o mês inicial no botão de eventos
+                    eventsTab.textContent = `Eventos ${monthSelect.value.charAt(0).toUpperCase() + monthSelect.value.slice(1)}`;
+
+                    monthSelect.addEventListener('change', (event) => {
+                        const selectedMonth = event.target.value;
+                        console.log('Mês selecionado:', selectedMonth);
+                        monthSelectionOverlay.classList.add('hidden'); // Fecha o dialog após seleção
+                        eventsTab.textContent = `Eventos ${selectedMonth.charAt(0).toUpperCase() + selectedMonth.slice(1)}`;
+                        renderEvents(selectedMonth); // Filtra os eventos pelo mês selecionado
+                    });
+                }
+            }
+
+            // Renderiza os eventos por padrão ao carregar a página (filtrando por Junho inicialmente)
+            renderEvents(monthSelect.value);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joga pra Rolo - Unilink</title>
+    <!-- Inclui o Tailwind CSS para estilização chique, bicha! -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* A família Inter, porque a gente ama consistência e um visual clean! */
+        body {
+            font-family: "Nunito", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; /* Um fundinho neutro pra não brigar com o cabeçalho */
+            display: flex; /* Para centralizar o contêiner principal */
+            justify-content: center; /* Centra horizontalmente o contêiner principal */
+            align-items: center; /* Centra verticalmente o contêiner principal */
+            min-height: 100vh; /* Garante que o corpo ocupa toda a altura da tela */
+            overflow: hidden; /* Garante que não haja scrollbar no body */
+        }
+
+        /* Classes para os botões e inputs menores, com bordas arredondadas como a gente gosta */
+        .rounded-14px {
+            border-radius: 14px;
+        }
+
+        /* Estilos para as abas de Ofertas/Meus Pedidos */
+        .tab-button {
+            padding: 8px 15px;
+            border-radius: 14px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .tab-button.active {
+            background-color: #ff6479; /* Cor ativa */
+            color: white;
+        }
+        .tab-button.inactive {
+            background-color: #e5a1ae; /* Cor inativa */
+            color: white;
+        }
+
+        /* Estilos para o card de oferta */
+        .offer-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            position: relative;
+        }
+        .offer-card .profile-img {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+        .offer-card .details {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .offer-card .name {
+            font-weight: bold;
+            font-size: 11px;
+            color: #333;
+        }
+        .offer-card .description {
+            font-size: 11px;
+            color: #555;
+            margin-top: 4px;
+        }
+        .offer-card .buy-button {
+            background-color: #39e54a; /* Verde vibrante */
+            color: white;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 14px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 10px;
+            align-self: flex-start;
+        }
+        .offer-card .price {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+            margin-left: auto; /* Alinha o preço à direita */
+            align-self: flex-end; /* Alinha à parte inferior do card */
+        }
+
+        /* Estilos para a tela de pagamento (overlay) */
+        .payment-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Fundo escuro */
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .payment-dialog {
+            background-color: white;
+            width: 350px;
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .payment-dialog .qr-code {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            margin-bottom: 15px;
+            cursor: pointer; /* Adicionado cursor para indicar clicável */
+        }
+        .payment-dialog .pix-link {
+            font-size: 14px;
+            color: #004aad;
+            text-decoration: underline;
+            margin-bottom: 20px;
+            cursor: pointer; /* Adicionado cursor para indicar clicável */
+        }
+        .payment-dialog .close-button {
+            background-color: #e5a1ae;
+            color: white;
+            font-weight: bold;
+            padding: 8px 15px;
+            border-radius: 14px;
+            cursor: pointer;
+        }
+
+        /* Estilos para o overlay de chat (Fulano) */
+        .chat-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Fundo escuro */
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .chat-content-wrapper {
+            width: 393px;
+            height: 852px;
+            border: 4px solid black;
+            border-radius: 16px;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        .chat-header {
+            background-color: #e5a1ae;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .chat-messages-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-input-area {
+            width: 100%;
+            padding: 16px;
+            background-color: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+        }
+        .chat-input-area input {
+            flex-grow: 1;
+            height: 35.5px;
+            border-radius: 18px;
+            border: 2px solid #e2e8f0;
+            padding: 0 16px;
+            font-size: 14px;
+            color: #4a5568;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .chat-input-area input:focus {
+            border-color: #4299e1;
+        }
+        .chat-send-button {
+            width: 54px;
+            height: 35.5px;
+            background-color: #e5a1ae;
+            border-radius: 18px;
+            border: 2px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 8px;
+            cursor: pointer;
+        }
+
+        /* Estilos de bolha de mensagem para o chat */
+        .message-bubble {
+            max-width: 75%;
+            padding: 8px 12px;
+            border-radius: 18px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .message-sent {
+            background-color: #4f603e; /* Verde/oliva */
+            color: white;
+            align-self: flex-end;
+        }
+        .message-received {
+            background-color: #e5a1ae; /* Rosa/roxo */
+            color: black;
+            align-self: flex-start;
+        }
+        .timestamp {
+            font-size: 9.5px;
+            color: rgba(255, 255, 255, 0.7);
+            align-self: flex-end;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+        }
+        .message-received .timestamp {
+            color: rgba(0, 0, 0, 0.5);
+        }
+        .checkmark-icon {
+            width: 12px;
+            height: 12px;
+            margin-left: 4px;
+        }
+
+        /* Força a classe hidden a ter display: none */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Estilos para o overlay de criar oferta */
+        .create-offer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Fundo escuro */
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .create-offer-dialog {
+            background-color: #026dad; /* Cor azul suave */
+            background: #026dad; /* Removido o degradê para ser sólido */
+            width: 393px;
+            height: 852px;
+            border-radius: 28px; /* Borda arredondada maior */
+            border: 4px solid black;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        .create-offer-dialog header {
+            background-color: #e5a1ae; /* Cor do cabeçalho igual ao da Home */
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .create-offer-dialog main {
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .create-offer-dialog input[type="text"],
+        .create-offer-dialog textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            border: 2px solid #e2e8f0;
+            font-size: 16px;
+            color: #4a5568;
+            outline: none;
+            margin-bottom: 15px;
+            background-color: white; /* Fundo branco para inputs */
+        }
+        .create-offer-dialog textarea {
+            height: 120px; /* Altura maior para descrição */
+            resize: none; /* Impede redimensionamento manual */
+        }
+        .create-offer-dialog footer {
+            width: 100%;
+            height: 60px;
+            background-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center; /* Centraliza o único item */
+            padding: 0 16px;
+        }
+        .create-offer-dialog footer .icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        .create-offer-dialog footer .icon-item img {
+            width: 29px;
+            height: 29px;
+            object-fit: contain;
+            margin-bottom: 4px;
+        }
+        .create-offer-dialog footer .icon-item span {
+            font-size: 12px;
+            color: #4a5568;
+        }
+    </style>
+</head>
+<body>
+    <!-- O contêiner principal, com todo o charme do nosso retângulo e borda! -->
+    <div class="w-[393px] h-[852px] border-4 border-black rounded-3xl
+                flex flex-col bg-white shadow-xl overflow-hidden relative">
+        
+        <!-- O cabeçalho da página Joga pra Rolo -->
+        <header class="w-full h-[60px] bg-[#e5a1ae] flex items-center justify-between px-4 shadow-md z-10">
+            <!-- Título "unilink" no centro, em negrito e branco divo! -->
+            <div class="flex-grow text-center text-white font-bold text-[25px]">unilink</div>
+        </header>
+
+        <!-- Abas de Ofertas / Meus Pedidos -->
+        <div class="w-full flex justify-center bg-white py-3 px-4">
+            <button id="offersTab" class="tab-button active mr-2 text-[14px]">Ofertas</button>
+            <button id="myOrdersTab" class="tab-button inactive text-[14px]">Meus Pedidos</button>
+        </div>
+
+        <!-- Conteúdo principal do Joga pra Rolo -->
+        <main id="jogaPraRoloContent" class="flex-grow overflow-y-auto text-[14px] overflow-x-hidden p-4 relative z-0 flex flex-col items-center">
+            <!-- Conteúdo das abas será injetado aqui pelo JavaScript -->
+        </main>
+
+        <!-- Botão Flutuante de Adição (Criar Oferta) -->
+        <button id="createOfferFab" class="absolute bottom-[80px] right-[20px] w-[50px] h-[50px] rounded-full bg-[#026dad] border-[2px] border-black flex items-center justify-center text-white text-3xl font-bold shadow-lg z-40">
+            +
+        </button>
+
+        <!-- Rodapé DIVO! Fixo na parte inferior do contêiner principal -->
+        <footer class="w-full h-[60px] bg-[#4f603e] flex items-center justify-around px-4 z-10">
+            <!-- Ícone Home -->
+            <a href="home1.html">
+                <img src="img/home.png" alt="Ícone Home" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=H';">
+            </a>
+            
+            <!-- Ícone Pesquisar -->
+            <a href="usuarios.html">
+                <img src="img/pesquisar.png" alt="Ícone Pesquisar" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=P';">
+            </a>
+
+            <!-- Ícone Quiz -->
+            <a href="quiz.html">
+                <img src="img/quiz.png" alt="Ícone Quiz" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=Q';">
+            </a>
+
+            <!-- Ícone Jogaprolo -->
+            <a href="jogaprolo.html">
+                <img src="img/jogaprolo.png" alt="Ícone Jogaprolo" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=J';">
+            </a>
+
+            <!-- Ícone Agenda -->
+            <a href="agenda.html">
+                <img src="img/agenda.png" alt="Ícone Agenda" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=A';">
+            </a>
+
+            <!-- Ícone Seu Perfil -->
+            <a href="seuperfil.html">
+                <img src="img/seuperfil.png" alt="Ícone Seu Perfil" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=S';">
+            </a>
+        </footer>
+    </div>
+
+    <!-- Overlay de Pagamento (Inicialmente escondido) -->
+    <div id="paymentOverlay" class="payment-overlay hidden">
+        <div class="payment-dialog">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Pagar por Pix Copia e Cola:</h2>
+            <img src="img/qrcode.png" alt="QR Code Pix" class="qr-code" id="qrCodeImg"
+                 onerror="this.onerror=null;this.src='https://placehold.co/150x150/cccccc/000000?text=QR+CODE';">
+            <a href="#" class="pix-link" id="pixCopyLink">link.pix.br.00029271932</a>
+            <button id="closePaymentButton" class="close-button">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Overlay de Chat com Fulano (Inicialmente escondido) -->
+    <div id="fulanoChatOverlay" class="chat-overlay hidden">
+        <div class="chat-content-wrapper">
+            <!-- Cabeçalho do Chat -->
+            <header class="chat-header">
+                <button id="closeFulanoChatButton" class="text-white text-2xl font-bold">
+                    &larr; <!-- Seta para a esquerda -->
+                </button>
+                <div class="flex items-center flex-grow justify-center">
+                    <img src="img/fulano.png" alt="Foto de Perfil do Fulano" class="w-[42px] h-[42px] rounded-full object-cover mr-2"
+                         onerror="this.onerror=null;this.src='https://placehold.co/42x42/cccccc/000000?text=F';">
+                    <div class="flex flex-col items-start">
+                        <span class="font-bold text-[11px] text-white">Fulano - CCET - Sistemas de Informação</span>
+                        <span class="text-[10px] text-white opacity-80">online</span>
+                    </div>
+                </div>
+                <!-- Ícone de vídeo chamada (placeholder) -->
+                <img src="img/chamada.png" alt="Ícone de Vídeo Chamada" class="w-[24px] h-[24px] object-contain cursor-pointer"
+                     onerror="this.onerror=null;this.src='https://placehold.co/24x24/aaaaaa/FFFFFF?text=V';">
+            </header>
+
+            <!-- Área de Mensagens do Chat -->
+            <main id="fulanoChatMessages" class="chat-messages-area">
+                <!-- Mensagem inicial do Fulano -->
+                <div class="message-bubble message-received">
+                    <span>Oii, onde a gente pode se encontrar?</span>
+                    <span class="timestamp">12:30</span>
+                </div>
+            </main>
+
+            <!-- Área de Input de Mensagem -->
+            <div class="chat-input-area">
+                <input type="text" id="fulanoMessageInput" placeholder="Digite sua mensagem..."
+                       class="flex-grow">
+                <button id="fulanoSendMessageButton" class="chat-send-button">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay de Criar Oferta (NOVO!) -->
+    <div id="createOfferOverlay" class="create-offer-overlay hidden">
+        <div class="create-offer-dialog">
+            <header style="background-color: #026aad;">
+                <button id="closeCreateOfferButton" class="text-white text-2xl font-bold ">
+                    &larr; <!-- Seta para a esquerda -->
+                </button>
+                <div class="text-white font-bold text-xl">Criar Oferta</div>
+                <button id="publishOfferButton" class="text-white font-bold text-base">
+                    Publicar
+                </button>
+            </header>
+
+            <main>
+                <input type="text" id="offerPriceInput" placeholder="Preço (Ex: R$ 120)" class="text-left">
+                <textarea id="offerDescriptionInput" placeholder="Descrição da oferta..."></textarea>
+            </main>
+
+            <footer>
+                <div class="icon-item">
+                    <img src="img/imagem.png" alt="Adicionar Imagem" onerror="this.onerror=null;this.src='https://placehold.co/29x29/cccccc/FFFFFF?text=IMG';">
+                    <span style="font-size: 14px; color: #000000; text-decoration: solid;">Imagem</span>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const jogaPraRoloContent = document.getElementById('jogaPraRoloContent');
+            const offersTab = document.getElementById('offersTab');
+            const myOrdersTab = document.getElementById('myOrdersTab');
+            const paymentOverlay = document.getElementById('paymentOverlay');
+            const closePaymentButton = document.getElementById('closePaymentButton');
+            const pixCopyLink = document.getElementById('pixCopyLink');
+            const qrCodeImg = document.getElementById('qrCodeImg');
+
+            // Fulano Chat Overlay elements
+            const fulanoChatOverlay = document.getElementById('fulanoChatOverlay');
+            const closeFulanoChatButton = document.getElementById('closeFulanoChatButton');
+            const fulanoMessageInput = document.getElementById('fulanoMessageInput');
+            const fulanoSendMessageButton = document.getElementById('fulanoSendMessageButton');
+            const fulanoChatMessages = document.getElementById('fulanoChatMessages');
+
+            // Create Offer Overlay elements
+            const createOfferFab = document.getElementById('createOfferFab');
+            const createOfferOverlay = document.getElementById('createOfferOverlay');
+            const closeCreateOfferButton = document.getElementById('closeCreateOfferButton');
+            const publishOfferButton = document.getElementById('publishOfferButton');
+            const offerPriceInput = document.getElementById('offerPriceInput');
+            const offerDescriptionInput = document.getElementById('offerDescriptionInput');
+
+
+            // Dados de exemplo para ofertas
+            const offers = [
+                {
+                    id: 'offer1',
+                    user: 'Fulano',
+                    course: 'CCET - Sistemas de Informação',
+                    description: 'Vendo Memória RAM no precinho!',
+                    price: 'R$ 120',
+                    profileImg: 'img/fulano.png',
+                    qrCode: 'img/qrcode.png', // Imagem do QR Code específica para a oferta
+                    pixLink: 'link.pix.br.00029271932'
+                },
+            ];
+
+            // Dados de exemplo para "Meus Pedidos"
+            const myOrders = [
+                {
+                    id: 'order1',
+                    user: 'Fulano',
+                    course: 'CCET - Sistemas de Informação',
+                    description: 'Seu pedido foi processado, converse com Fu...',
+                    profileImg: 'img/fulano.png',
+                },
+            ];
+
+            function renderOffers() {
+                jogaPraRoloContent.innerHTML = '';
+                offers.forEach(offer => {
+                    const offerCard = document.createElement('div');
+                    offerCard.classList.add('offer-card');
+                    offerCard.innerHTML = `
+                        <img src="${offer.profileImg}" alt="Foto de Perfil do ${offer.user}" class="profile-img"
+                             onerror="this.onerror=null;this.src='https://placehold.co/42x42/cccccc/000000?text=${offer.user.charAt(0)}';">
+                        <div class="details">
+                            <span class="name text-[14px]" style="f">${offer.user} - ${offer.course}</span>
+                            <span class="description text-[14px]">${offer.description}</span>
+                            <button class="buy-button text-[14px]" data-offer-id="${offer.id}">Comprar!</button>
+                        </div>
+                        <span class="price">${offer.price}</span>
+                    `;
+                    jogaPraRoloContent.appendChild(offerCard);
+                });
+
+                // Adiciona event listeners para os botões de comprar
+                jogaPraRoloContent.querySelectorAll('.buy-button').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        event.preventDefault(); // Previne o comportamento padrão do botão
+                        const offerId = event.target.dataset.offerId;
+                        const selectedOffer = offers.find(o => o.id === offerId);
+                        if (selectedOffer) {
+                            // Abre o overlay de pagamento
+                            paymentOverlay.classList.remove('hidden');
+                            // Atualiza o QR Code e o link Pix no dialog
+                            const qrCodeImgElement = paymentOverlay.querySelector('.qr-code'); // Get QR code image inside dialog
+                            qrCodeImgElement.src = selectedOffer.qrCode;
+                            qrCodeImgElement.onerror = function() {
+                                this.onerror = null;
+                                this.src = 'https://placehold.co/150x150/cccccc/000000?text=QR+CODE+ERRO';
+                            };
+                            if (pixCopyLink) {
+                                pixCopyLink.textContent = selectedOffer.pixLink;
+                                pixCopyLink.href = `https://${selectedOffer.pixLink}`; // Torna o link clicável
+                            }
+                        }
+                    });
+                });
+            }
+
+            function renderMyOrders() {
+                jogaPraRoloContent.innerHTML = '';
+                myOrders.forEach(order => {
+                    const orderCard = document.createElement('div'); // Usar div em vez de <a> para controlar o clique
+                    orderCard.classList.add('offer-card'); // Reutiliza o estilo do card
+                    orderCard.style.cursor = 'pointer'; // Indica que é clicável
+                    orderCard.innerHTML = `
+                        <img src="${order.profileImg}" alt="Foto de Perfil do ${order.user}" class="profile-img"
+                             onerror="this.onerror=null;this.src='https://placehold.co/42x42/cccccc/000000?text=${order.user.charAt(0)}';">
+                        <div class="details">
+                            <span class="name">${order.user} - ${order.course}</span>
+                            <span class="description">${order.description}</span>
+                        </div>
+                    `;
+                    // Adiciona um listener para abrir o overlay de chat do Fulano
+                    orderCard.addEventListener('click', () => {
+                        fulanoChatOverlay.classList.remove('hidden');
+                        // Opcional: Limpar mensagens ou carregar histórico do chat
+                        fulanoChatMessages.innerHTML = `
+                            <div class="message-bubble message-received">
+                                <span>Oii, onde a gente pode se encontrar?</span>
+                                <span class="timestamp">12:30</span>
+                            </div>
+                        `;
+                        fulanoMessageInput.value = ''; // Limpa o input
+                        fulanoChatMessages.scrollTop = fulanoChatMessages.scrollHeight; // Rola para o final
+                    });
+                    jogaPraRoloContent.appendChild(orderCard);
+                });
+            }
+
+            // Lógica das abas
+            offersTab.addEventListener('click', () => {
+                offersTab.classList.add('active');
+                offersTab.classList.remove('inactive');
+                myOrdersTab.classList.remove('active');
+                myOrdersTab.classList.add('inactive');
+                renderOffers();
+            });
+
+            myOrdersTab.addEventListener('click', () => {
+                myOrdersTab.classList.add('active');
+                myOrdersTab.classList.remove('inactive');
+                offersTab.classList.remove('active');
+                offersTab.classList.add('inactive');
+                renderMyOrders();
+            });
+
+            // Lógica para fechar o overlay de pagamento
+            if (closePaymentButton) {
+                closePaymentButton.addEventListener('click', () => {
+                    paymentOverlay.classList.add('hidden');
+                });
+            }
+
+            // Lógica para enviar mensagens no chat do Fulano (dentro do overlay)
+            function sendFulanoMessage() {
+                const messageText = fulanoMessageInput.value.trim();
+                if (messageText === '') {
+                    return;
+                }
+
+                const newMessageBubble = document.createElement('div');
+                newMessageBubble.classList.add('message-bubble', 'message-sent');
+
+                const messageSpan = document.createElement('span');
+                messageSpan.textContent = messageText;
+
+                const timestampSpan = document.createElement('span');
+                timestampSpan.classList.add('timestamp');
+                
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                timestampSpan.textContent = `${hours}:${minutes}`;
+
+                const checkmarkIcon = document.createElement('img');
+                checkmarkIcon.src = 'https://placehold.co/12x12/4f603e/FFFFFF?text=%E2%9C%93';
+                checkmarkIcon.classList.add('checkmark-icon');
+                checkmarkIcon.alt = 'Checkmark';
+                checkmarkIcon.onerror = function() { this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMiIgaGVpZ2h0PSIxMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIwIDZMMTAgMTZMNCAxMCI+PC9wYXRoPjwvc3ZnPg=='; };
+
+
+                timestampSpan.appendChild(checkmarkIcon);
+                newMessageBubble.appendChild(messageSpan);
+                newMessageBubble.appendChild(timestampSpan);
+
+                fulanoChatMessages.appendChild(newMessageBubble);
+                fulanoMessageInput.value = '';
+                fulanoChatMessages.scrollTop = fulanoChatMessages.scrollHeight;
+            }
+
+            if (fulanoSendMessageButton) {
+                fulanoSendMessageButton.addEventListener('click', sendFulanoMessage);
+            }
+
+            if (fulanoMessageInput) {
+                fulanoMessageInput.addEventListener('keypress', (event) => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        sendFulanoMessage();
+                    }
+                });
+            }
+
+            // Lógica para fechar o overlay de chat do Fulano
+            if (closeFulanoChatButton) {
+                closeFulanoChatButton.addEventListener('click', () => {
+                    fulanoChatOverlay.classList.add('hidden');
+                });
+            }
+
+            // Lógica para abrir o overlay de chat do Fulano ao clicar no QR Code
+            if (qrCodeImg) {
+                qrCodeImg.addEventListener('click', (event) => {
+                    event.preventDefault(); // Previne qualquer comportamento padrão da imagem
+                    paymentOverlay.classList.add('hidden'); // Fecha o overlay de pagamento
+                    fulanoChatOverlay.classList.remove('hidden'); // Abre o chat do Fulano
+                    // Opcional: Limpar mensagens ou carregar histórico do chat
+                    fulanoChatMessages.innerHTML = `
+                        <div class="message-bubble message-received">
+                            <span>Oii, onde a gente pode se encontrar?</span>
+                            <span class="timestamp">12:30</span>
+                        </div>
+                    `;
+                    fulanoMessageInput.value = ''; // Limpa o input
+                    fulanoChatMessages.scrollTop = fulanoChatMessages.scrollHeight; // Rola para o final
+                });
+            }
+
+            // Lógica para abrir o overlay de Criar Oferta
+            if (createOfferFab) {
+                createOfferFab.addEventListener('click', () => {
+                    createOfferOverlay.classList.remove('hidden');
+                    offerPriceInput.value = ''; // Limpa os campos
+                    offerDescriptionInput.value = '';
+                });
+            }
+
+            // Lógica para fechar o overlay de Criar Oferta
+            if (closeCreateOfferButton) {
+                closeCreateOfferButton.addEventListener('click', () => {
+                    createOfferOverlay.classList.add('hidden');
+                });
+            }
+
+            // Lógica para Publicar a Oferta
+            if (publishOfferButton) {
+                publishOfferButton.addEventListener('click', () => {
+                    const price = offerPriceInput.value.trim();
+                    const description = offerDescriptionInput.value.trim();
+                    if (price && description) {
+                        console.log(`Nova Oferta: Preço - ${price}, Descrição - ${description}`);
+                        // Aqui você enviaria a nova oferta para um backend
+                        createOfferOverlay.classList.add('hidden'); // Fecha o overlay após publicar
+                        // Opcional: Adicionar a nova oferta à lista de ofertas ou a "Meus Pedidos"
+                    } else {
+                        alert('Por favor, preencha o preço e a descrição da oferta.'); // Alerta simples para campos vazios
+                    }
+                });
+            }
+
+            // Renderiza as ofertas por padrão ao carregar a página
+            renderOffers();
+        });
+    </script>
+</body>
+</html>

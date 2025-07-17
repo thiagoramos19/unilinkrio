@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuários - Unilink</title>
+    <!-- Inclui o Tailwind CSS para estilização chique, bicha! -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* A família Inter, porque a gente ama consistência e um visual clean! */
+        body {
+            font-family: "Nunito", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; /* Um fundinho neutro pra não brigar com o cabeçalho */
+            display: flex; /* Para centralizar o contêiner principal */
+            justify-content: center; /* Centra horizontalmente o contêiner principal */
+            align-items: center; /* Centra verticalmente o contêiner principal */
+            min-height: 100vh; /* Garante que o corpo ocupa toda a altura da tela */
+            overflow: hidden; /* Garante que não haja scrollbar no body */
+        }
+
+        /* Classes para os botões e inputs menores, com bordas arredondadas como a gente gosta */
+        .rounded-14px {
+            border-radius: 14px;
+        }
+
+        /* Estilos para o container da carta (agora sem flip) */
+        .card-container-display {
+            width: 314px; /* Largura exata da carta */
+            height: 502px; /* Altura exata da carta */
+            border-radius: 18px; /* Cantos arredondados do container */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Alinha o conteúdo ao topo */
+            padding: 16px;
+            box-sizing: border-box; /* Garante que padding não aumente o tamanho total */
+            overflow-y: hidden; /* **NÃO PODE TER SCROLL AQUI!** */
+            text-align: center; /* Centraliza o texto por padrão */
+            position: relative; /* Para posicionar o botão de adicionar */
+        }
+        .card-container-display ul {
+            list-style: disc; /* Bolinhas para a lista de coisas que ama */
+            margin-left: 20px;
+            margin-bottom: 4px; /* Espaçamento da lista reduzido */
+            text-align: left; /* Alinha o texto da lista à esquerda */
+            width: 100%; /* Ocupa a largura total para justificar */
+            font-size: 12px; /* Tamanho da fonte para detalhes */
+        }
+        .card-container-display p {
+            text-align: justify; /* Justifica o texto das frases */
+            width: 100%; /* Ocupa a largura total para justificar */
+            font-size: 12px; /* Tamanho da fonte para detalhes */
+            margin-bottom: 4px; /* Espaçamento reduzido */
+        }
+        .card-container-display h3 {
+            font-size: 14px; /* Tamanho da fonte para títulos de detalhes */
+            font-weight: bold; /* Títulos de detalhes em negrito */
+            margin-top: 8px; /* Espaçamento superior */
+            margin-bottom: 2px; /* Espaçamento inferior reduzido */
+            color: white; /* Cor dos títulos de detalhes */
+        }
+
+        .overlay {
+            position: fixed; /* Fixo na viewport */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Escurece 50% */
+            z-index: 20; /* Fica acima do conteúdo, mas abaixo do filtro */
+            /* Removido display: none; daqui, agora é controlado pela classe hidden */
+        }
+
+        /* Estilos para o topo das cartas (visível no rodapé) */
+        .card-top-element {
+            width: 109px;
+            height: 33px;
+            background-color: white; /* Cor padrão branca */
+            border: 1px solid black; /* Borda preta padrão */
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            display: flex;
+            align-items: flex-start; /* Alinha o conteúdo ao topo */
+            justify-content: flex-start; /* Alinha o conteúdo à esquerda */
+            padding: 5px; /* Pequeno padding para a imagem não colar na borda */
+            position: relative; /* Para controlar o z-index */
+            transition: all 0.2s ease-in-out; /* Transição suave para seleção */
+            flex-shrink: 0; /* Evita que as cartas encolham */
+            box-sizing: border-box; /* Garante que padding não aumente o tamanho total */
+            cursor: pointer; /* Indica que é clicável */
+        }
+
+        .card-tops-display .card-top-element:not(:first-child) {
+            margin-left: -60px; /* SOBREPOSIÇÃO AJUSTADA PARA MAIS ESPAÇO */
+        }
+
+        .card-top-element.selected {
+            /* Quando selecionado, assume a cor de fundo do usuário e borda preta mais grossa */
+            border: 3px solid black; 
+            z-index: 10; /* Traz a carta selecionada para a frente */
+            transform: translateY(-5px); /* Um leve levantamento ao selecionar */
+        }
+
+        /* Esconder a barra de rolagem para Webkit (Chrome, Safari) */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Esconder a barra de rolagem para Firefox */
+        .hide-scrollbar {
+            scrollbar-width: none; /* Firefox */
+        }
+
+        /* Estilo para a área de exibição da carta completa (agora estática no fluxo) */
+        #fullCardDisplayArea {
+            margin-top: 20px; /* Espaço abaixo da mensagem "Selecione alguma carta" */
+            margin-bottom: 20px; /* Espaço antes das cartas do topo */
+        }
+
+        /* Estilo para o menu de filtro */
+        .filter-menu {
+            position: fixed; /* Alterado para fixed */
+            /* Calculo do top: altura do header (60px) + padding-top do main (20px) + altura do botão de filtro (29px) + margin-bottom do botão (16px) */
+            top: 125px; /* Calculado como 60 (header) + 20 (main pt) + 29 (button h) + 16 (button mb) */
+            left: 50%;
+            transform: translateX(-50%); /* Centraliza horizontalmente */
+            width: 350px;
+            height: 70px;
+            background-color: #ffb5a6; /* Cor rosinha para o filtro */
+            border-radius: 14px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 12px;
+            z-index: 30; /* Acima da carta e outros elementos */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- O contêiner principal, com todo o charme do nosso retângulo e borda! -->
+    <div class="w-[393px] h-[852px] border-4 border-black rounded-3xl
+                flex flex-col bg-white shadow-xl overflow-hidden relative">
+        
+        <!-- O cabeçalho da página de usuários -->
+        <header class="w-full h-[60px] bg-[#e5a1ae] flex items-center justify-between px-4 shadow-md z-10">
+            <!-- Seta para voltar para a home -->
+            <a href="home1.html" class="text-white text-2xl font-bold">
+                &larr; <!-- Seta para a esquerda -->
+            </a>
+            <!-- O título "unilink" no centro, em negrito e branco divo! -->
+            <div class="text-white font-bold text-xl">unilink</div>
+            <!-- Espaço vazio para alinhar o título ao centro -->
+            <div class="w-[46px] h-[46px]"></div> 
+        </header>
+
+        <!-- Conteúdo principal da página de usuários -->
+        <main class="flex-grow overflow-y-hidden overflow-x-hidden pl-3 pr-2 pt-[20px] pb-0 relative z-0 flex flex-col justify-between">
+            <div> <!-- Wrapper para o conteúdo superior -->
+                <h1 class="text-xl font-bold text-gray-800 text-center mb-4">
+                    Encontre queridos. Encontre amores, Encontre amizades.
+                </h1>
+
+                <!-- Botão de Filtros -->
+                <div class="w-[179px] h-[29px] bg-[#ff6479] rounded-14px flex items-center justify-between px-2 relative mx-auto mt-4 mb-4">
+                <span class="text-black font-bold text-[18px] ml-1">Filtrar Cards</span>
+                
+                <!-- Botão de Filtro com ícone, AGORA DENTRO DO RETÂNGULO E ALINHADO! -->
+                <button id="filterButton" class="w-[43px] h-[22px] bg-[#ffb5a6] rounded-14px
+                                     flex items-center justify-center shadow-md ml-auto">
+                    <img src="img/filtro_icon.png" alt="Ícone de Filtro" class="w-[15px] h-[15px] object-contain"
+                         onerror="this.onerror=null;this.src='https://placehold.co/15x15/ffb5a6/000000?text=F';"
+                         title="Filtro">
+                </button>
+            </div>
+
+                <!-- Frase "Selecione alguma carta:" -->
+                <p id="selectCardMessage" class="text-gray-600 text-center text-sm mb-4">Selecione alguma carta:</p>
+
+                <!-- Área para o conteúdo da carta selecionada (agora no fluxo normal do main) -->
+                <div id="fullCardDisplayArea" class="w-[314px] h-[502px] rounded-lg mx-auto shadow-md hidden" style="
+    margin-top: 35px;
+">
+                    <!-- Conteúdo da carta selecionada aparecerá aqui. -->
+                </div>
+            </div>
+
+            <!-- Container para os topos das cartas e botão de refresh - Colado no rodapé -->
+            <div id="cardTopsWrapper" class="w-full flex justify-start items-end pl-3 " style="margin-bottom: 0;"> 
+                <div id="cardTopsContainer" class="flex overflow-x-auto hide-scrollbar">
+                    <!-- Topos das cartas serão inseridos aqui pelo JavaScript -->
+                </div>
+                <!-- Botão de Refresh -->
+                <button id="refreshButton" class="w-[30px] h-[30px] flex-shrink-0 ml-4">
+                    <img src="img/refresh.png" alt="Ícone de Refresh" class="w-full h-full object-contain"
+                         onerror="this.onerror=null;this.src='https://placehold.co/30x30/cccccc/000000?text=R';">
+                </button>
+            </div>
+        </main>
+
+        <!-- Rodapé DIVO! Fixo na parte inferior do contêiner principal -->
+        <footer class="w-full h-[60px] bg-[#4f603e] flex items-center justify-around px-4 z-10">
+            <!-- Ícone Home -->
+            <a href="home1.html">
+                <img src="img/home.png" alt="Ícone Home" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=H';">
+            </a>
+            
+            <!-- Ícone Pesquisar -->
+            <a href="usuarios.html">
+                <img src="img/pesquisar.png" alt="Ícone Pesquisar" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=P';">
+            </a>
+
+            <!-- Ícone Quiz -->
+            <a href="quiz.html">
+                <img src="img/quiz.png" alt="Ícone Quiz" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=Q';">
+            </a>
+
+            <!-- Ícone Jogaprolo -->
+            <a href="jogaprolo.html">
+                <img src="img/jogaprolo.png" alt="Ícone Jogaprolo" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=J';">
+            </a>
+
+            <!-- Ícone Agenda -->
+            <a href="agenda.html">
+                <img src="img/agenda.png" alt="Ícone Agenda" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=A';">
+            </a>
+
+            <!-- Ícone Seu Perfil -->
+            <a href="seuperfil.html">
+                <img src="img/seuperfil.png" alt="Ícone Seu Perfil" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=S';">
+            </a>
+        </footer>
+    </div>
+
+    <!-- Overlay para escurecer o fundo do filtro -->
+    <div id="overlay" class="overlay hidden"></div>
+
+    <!-- Retângulo de Filtro -->
+    <div id="filterMenu" class="filter-menu hidden">
+
+        
+        <div class="flex items-center justify-between w-[calc(100%-20px)] mx-auto">
+            <span id="campusLabel" class="text-black text-2xl">Campus/Prédio:</span>
+            <select id="campusSelect" class="bg-[#e86b70] text-white rounded-md p-1 text-1xl focus:outline-none">
+                <option value="todos">Todos</option>
+                <option value="cch">CCH</option>
+                <option value="ccet">CCET</option>
+                <option value="ccjp">CCJP</option>
+                <option value="ib">IB</option>
+            </select>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userCardsContainer = document.getElementById('cardTopsContainer'); 
+            const selectCardMessage = document.getElementById('selectCardMessage');
+            const refreshButton = document.getElementById('refreshButton');
+            const fullCardDisplayArea = document.getElementById('fullCardDisplayArea'); 
+            const filterButton = document.getElementById('filterButton');
+            const filterMenu = document.getElementById('filterMenu');
+            const overlay = document.getElementById('overlay');
+            const campusSelect = document.getElementById('campusSelect');
+            const campusLabel = document.getElementById('campusLabel');
+
+            // Dados dos usuários para as cartas
+            const users = [
+                {
+                    id: 'fulano',
+                    name: 'Fulano',
+                    age: 28,
+                    course: 'CCET - Sistemas de Informação',
+                    interests: 'Jogos, Música e Animes',
+                    image: 'img/fulano.png',
+                    details: {
+                        thingsILove: ['Joguinhos online com rage gratuito', 'Lofi pra codar', 'Anime com final confuso'],
+                        defineInPhrase: '"Se der bug, tenta reiniciar a conversa."',
+                        mood: '"Querendo alguém pra falar mal de front-end e jogar Valorant depois."',
+                        funFact: '"Já larguei um date porque a pessoa não sabia o que era Stack Overflow."'
+                    },
+                    bgColor: '#d87070' // Cor do card
+                },
+                {
+                    id: 'ciclano',
+                    name: 'Ciclano',
+                    age: 23,
+                    course: 'CCH - Biblioteconomia',
+                    interests: 'Cultura Pop, Música e Livros',
+                    image: 'img/ciclano.png',
+                    details: {
+                        thingsILove: ['Organizar livros por cor (mesmo sabendo que é antiético pra bibliotecônomia)', 'Cultura pop com letra depressiva', 'Memes intelectuais'],
+                        defineInPhrase: '"Leio tudo que vejo pela frente, inclusive entrelinhas de mensagens de bom dia."',
+                        mood: '"Disposto a recomendar um livro pra cada pessoa que der match."',
+                        funFact: '"Tenho mais livros não lidos do que amigos no Instagram."'
+                    },
+                    bgColor: '#004aad'
+                },
+                {
+                    id: 'beltrana',
+                    name: 'Beltrana',
+                    age: 18,
+                    course: 'CCH - História',
+                    interests: 'Livros, Música e Filmes',
+                    image: 'img/beltrana.png',
+                    details: {
+                        thingsILove: ['Livros esquecidos na estante da biblioteca', 'Playlist de sofrimento alternativo', 'Filmes que ninguém entende, mas eu finjo que entendi'],
+                        defineInPhrase: '"Faço drama por esporte e problematizo até desenho animado."',
+                                                mood: '"Procurando alguém pra debater Marx ou só pra reclamar da vida acadêmica."',
+                        funFact: '"Já terminei amizade por causa de spoiler de série histórica."'
+                    },
+                    bgColor: '#ff6479'
+                },
+                {
+                    id: 'noah',
+                    name: 'Noah',
+                    age: 20,
+                    course: 'IB - Medicina',
+                    interests: 'Futebol, Música e Filmes',
+                    image: 'img/noah.png',
+                    details: {
+                        thingsILove: ['Futebol de sábado com os amigos', 'Música pra curar o estresse', 'Films de hospital (mesmo sabendo que tudo ali é mentira)'],
+                        defineInPhrase: '"Metade estudante de medicina, metade paciente de ansiedade."',
+                        mood: '"Procurando alguém que aceite conversar sobre Grey\'s Anatomy e deixar eu dormir no colo depois de 12h de plantão."',
+                        funFact: '"Se me perguntar que dia é hoje... eu provavelmente vou errar."'
+                    },
+                    bgColor: '#a0a0a0'
+                },
+                {
+                    id: 'ze',
+                    name: 'Zé',
+                    age: 19,
+                    course: 'CCJP - Direito',
+                    interests: 'Livros, Viagem e Yoga',
+                    image: 'img/ze.png',
+                    details: {
+                        thingsILove: ['Gosta de livros de ficção científica', 'Viajar para lugares exóticos', 'Praticar yoga ao nascer do sol'],
+                        defineInPhrase: '"A justiça é cega, mas eu não."',
+                        mood: '"Pronto para defender os direitos de quem precisar."',
+                        funFact: '"Consigo recitar a Constituição Federal de trás pra frente."'
+                    },
+                    bgColor: '#ff7a28'
+                }
+            ];
+
+            let currentSelectedCardTopElement = null; // Para controlar qual card-top-element está selecionado
+            let currentDisplayedUser = null; // Armazena o objeto do usuário da carta grande
+            let isShowingDetails = false; // Controla se a carta grande está mostrando o verso
+
+            // Função para criar um card top (pequeno elemento com imagem e borda)
+            function createCardTopElement(user) {
+                const cardTop = document.createElement('div');
+                cardTop.classList.add('card-top-element'); 
+                cardTop.id = `card-top-element-${user.id}`;
+                
+                // Add the small user image to the card top
+                const userImage = document.createElement('img');
+                userImage.src = user.image;
+                userImage.alt = `Foto de Perfil do ${user.name}`;
+                userImage.classList.add('w-[20px]', 'h-[20px]', 'rounded-full', 'object-cover', 'mr-1'); 
+                userImage.onerror = function() {
+                    this.onerror = null;
+                    this.src = `https://placehold.co/20x20/cccccc/000000?text=${user.name.charAt(0)}`;
+                };
+                cardTop.appendChild(userImage);
+                
+                // Add user's initial or first letter of name for identification
+                const userInitial = document.createElement('span');
+                userInitial.classList.add('text-black', 'text-sm', 'font-bold');
+                userInitial.textContent = user.name.charAt(0); 
+                cardTop.appendChild(userInitial);
+
+
+                cardTop.addEventListener('click', (event) => {
+                    event.stopPropagation(); // Evita que o clique se propague para o fullCardDisplayArea
+
+                    // Se a carta clicada já estiver selecionada
+                    if (currentSelectedCardTopElement === cardTop) {
+                        // Se estiver mostrando os detalhes, volta para a frente
+                        if (isShowingDetails) {
+                            isShowingDetails = false;
+                            displayFullUserCard(user); // Redesenha a frente
+                        } else {
+                            // Se estiver mostrando a frente, deseleciona tudo
+                            cardTop.classList.remove('selected');
+                            cardTop.style.backgroundColor = 'white'; 
+                            cardTop.style.border = '1px solid black'; 
+                            cardTop.style.zIndex = 1;
+                            currentSelectedCardTopElement = null;
+                            fullCardDisplayArea.classList.add('hidden'); 
+                            fullCardDisplayArea.innerHTML = ''; // Limpa o conteúdo da carta completa
+                            fullCardDisplayArea.classList.add('bg-gray-200', 'items-center', 'justify-center', 'text-gray-500'); 
+                            selectCardMessage.classList.remove('hidden'); 
+                            currentDisplayedUser = null; // Reseta o usuário exibido
+                        }
+                        return; 
+                    }
+
+                    // Desseleciona qualquer outra carta que esteja selecionada
+                    if (currentSelectedCardTopElement) {
+                        currentSelectedCardTopElement.classList.remove('selected');
+                        currentSelectedCardTopElement.style.backgroundColor = 'white'; 
+                        currentSelectedCardTopElement.style.border = '1px solid black'; 
+                        currentSelectedCardTopElement.style.zIndex = 1; 
+                    }
+                    // Seleciona a carta atual
+                    cardTop.classList.add('selected');
+                    cardTop.style.backgroundColor = user.bgColor; 
+                    cardTop.style.border = '3px solid black'; 
+                    cardTop.style.zIndex = 10; 
+                    currentSelectedCardTopElement = cardTop;
+
+                    // Exibe o conteúdo completo da carta (sempre a frente ao selecionar uma nova)
+                    currentDisplayedUser = user;
+                    isShowingDetails = false; // Começa mostrando a frente
+                    displayFullUserCard(user); 
+                    selectCardMessage.classList.add('hidden'); 
+                    fullCardDisplayArea.classList.remove('hidden'); 
+                });
+
+                return cardTop;
+            }
+
+            // Função para exibir o conteúdo completo da carta selecionada
+            function displayFullUserCard(user) {
+                fullCardDisplayArea.innerHTML = ''; 
+                fullCardDisplayArea.classList.remove('bg-gray-200', 'items-center', 'justify-center', 'text-gray-500'); 
+                
+                const cardContent = document.createElement('div');
+                cardContent.classList.add('card-container-display'); 
+                cardContent.style.backgroundColor = user.bgColor;
+
+                let contentHtml = '';
+
+                if (!isShowingDetails) { // Frente da carta
+                    contentHtml = `
+                        <img src="${user.image}" alt="Foto de Perfil do ${user.name}" class="w-[208px] h-[208px] rounded-full object-cover mb-2 mx-auto block"
+                             onerror="this.onerror=null;this.src='https://placehold.co/208x208/cccccc/000000?text=${user.name.charAt(0)}';">
+                        <span class="font-bold text-xl text-white block text-center leading-tight">${user.name}, ${user.age}</span>
+                        <span class="text-xl text-white opacity-90 block text-center leading-tight">${user.course}</span>
+                        <span class="text-xl text-white opacity-90 block text-center leading-tight">Gosta de ${user.interests}</span>
+                        
+                        <button class="absolute bottom-4 left-1/2 -translate-x-1/2 w-[43px] h-[43px] rounded-full bg-white flex items-center justify-center border border-gray-300">
+                            <svg class="w-6 h-6 text-gray-700" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    `;
+                } else { // Verso da carta
+                    contentHtml = `
+                        <h3 class="text-sm text-white mt-4 mb-1">Três coisas que amo:</h3>
+                        <ul class="text-white text-xs list-disc pl-5 mb-2">
+                            ${user.details.thingsILove.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                        <h3 class="text-sm text-white mb-1">Sobre mim em uma frase:</h3>
+                        <p class="text-white text-xs mb-2 text-justify">${user.details.defineInPhrase}</p>
+                        <h3 class="text-sm text-white mb-1">Meu mood atual:</h3>
+                        <p class="text-white text-xs mb-2 text-justify">${user.details.mood}</p>
+                        <h3 class="text-sm text-white mb-1">Fun fact / Red flag disfarçada:</h3>
+                        <p class="text-white text-xs mb-2 text-justify">${user.details.funFact}</p>
+
+                        <button class="absolute bottom-4 left-1/2 -translate-x-1/2 w-[43px] h-[43px] rounded-full bg-white flex items-center justify-center border border-gray-300">
+                            <svg class="w-6 h-6 text-gray-700" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    `;
+                }
+                cardContent.innerHTML = contentHtml;
+                fullCardDisplayArea.appendChild(cardContent);
+
+                // Adiciona o evento de clique para alternar entre frente e verso
+                // Este listener está no fullCardDisplayArea, então ele pega cliques em qualquer lugar da carta grande
+                fullCardDisplayArea.onclick = () => { 
+                    isShowingDetails = !isShowingDetails; // Inverte o estado
+                    displayFullUserCard(user); // Redesenha a carta com o novo estado
+                };
+            }
+
+            // Função para embaralhar e renderizar os topos das cartas
+            function shuffleAndRenderCardTops() {
+                // Limpa o container de topos de cartas
+                userCardsContainer.innerHTML = '';
+                // Embaralha os usuários (simples para demonstração)
+                const shuffledUsers = [...users].sort(() => 0.5 - Math.random());
+                
+                // Adiciona os topos das cartas embaralhados
+                shuffledUsers.forEach((user, index) => {
+                    const cardTopElement = createCardTopElement(user);
+                    // Aplica a sobreposição diretamente aqui para garantir que funcione
+                    if (index > 0) {
+                        cardTopElement.style.marginLeft = '-60px'; // SOBREPOSIÇÃO AJUSTADA PARA MAIS ESPAÇO
+                    }
+                    userCardsContainer.appendChild(cardTopElement);
+                });
+
+                // Reseta a carta virada e mostra a mensagem "Selecione alguma carta:"
+                if (currentSelectedCardTopElement) {
+                    currentSelectedCardTopElement.classList.remove('selected');
+                    currentSelectedCardTopElement.style.backgroundColor = 'white';
+                    currentSelectedCardTopElement.style.border = '1px solid black';
+                    currentSelectedCardTopElement.style.zIndex = 1;
+                    currentSelectedCardTopElement = null;
+                }
+                selectCardMessage.classList.remove('hidden'); // Mostra a mensagem
+                fullCardDisplayArea.classList.add('hidden'); // Esconde a área da carta completa
+                fullCardDisplayArea.innerHTML = ''; // Reseta o conteúdo da carta completa
+                fullCardDisplayArea.classList.add('bg-gray-200', 'items-center', 'justify-center', 'text-gray-500'); // Restaura estilos de placeholder
+                currentDisplayedUser = null; // Reseta o usuário exibido
+                isShowingDetails = false; // Reseta para a frente
+            }
+
+            // Renderiza os topos das cartas inicialmente
+            shuffleAndRenderCardTops();
+
+            // Evento para o botão de refresh
+            refreshButton.addEventListener('click', shuffleAndRenderCardTops);
+
+            // Lógica para o botão de filtro
+            filterButton.addEventListener('click', (event) => {
+                event.stopPropagation(); // Evita que o clique feche o menu imediatamente
+                filterMenu.classList.toggle('hidden');
+                overlay.classList.toggle('hidden');
+            });
+
+            // Lógica para fechar o menu de filtro ao clicar no overlay
+            overlay.addEventListener('click', () => {
+                filterMenu.classList.add('hidden');
+                overlay.classList.add('hidden');
+            });
+
+            // Lógica para fechar o menu de filtro se clicar fora dele (mas não no botão)
+            document.addEventListener('click', (event) => {
+                if (!filterButton.contains(event.target) && !filterMenu.contains(event.target) && !filterMenu.classList.contains('hidden')) {
+                    filterMenu.classList.add('hidden');
+                    overlay.classList.add('hidden');
+                }
+            });
+
+            // Lógica de filtragem das cartas por Campus/Prédio
+            campusSelect.addEventListener('change', () => {
+                const selectedCampus = campusSelect.value;
+                const allCards = document.querySelectorAll('.card-top-element'); // Seleciona todos os topos de carta
+
+                allCards.forEach(cardTop => {
+                    const userId = cardTop.id.replace('card-top-element-', '');
+                    const user = users.find(u => u.id === userId);
+
+                    if (selectedCampus === 'todos' || (user && user.course.includes(selectedCampus))) {
+                        cardTop.style.display = 'flex'; // Mostra a carta
+                    } else {
+                        cardTop.style.display = 'none'; // Esconde a carta
+                    }
+                });
+
+                // Se uma carta grande estiver visível e não corresponder ao filtro, esconde
+                if (currentDisplayedUser && campusSelect.value !== 'todos' && !currentDisplayedUser.course.includes(campusSelect.value)) {
+                    fullCardDisplayArea.classList.add('hidden');
+                    selectCardMessage.classList.remove('hidden');
+                    if (currentSelectedCardTopElement) {
+                        currentSelectedCardTopElement.classList.remove('selected');
+                        currentSelectedCardTopElement.style.backgroundColor = 'white';
+                        currentSelectedCardTopElement.style.border = '1px solid black';
+                        currentSelectedCardTopElement.style.zIndex = 1;
+                        currentSelectedCardTopElement = null;
+                    }
+                    currentDisplayedUser = null;
+                    isShowingDetails = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

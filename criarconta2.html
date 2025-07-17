@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Dados Pessoais</title>
+    <!-- Inclui o Tailwind CSS para estilização impecável -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* A família Inter, porque a gente ama consistência */
+        body {
+            font-family: "Nunito", sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center; /* Centra horizontalmente o retângulo principal */
+            align-items: center; /* Centra verticalmente o retângulo principal */
+            min-height: 100vh; /* Garante que o corpo ocupa toda a altura da tela */
+            background-color: #f0f0f0; /* Um fundinho básico pra não brigar com o rosa */
+        }
+
+        /* Classes personalizadas para o tamanho exato dos inputs e botões, tudo padronizado! */
+        .input-button-size {
+            width: 314px;
+            height: 35.5px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <!-- O retângulo principal, com todo o charme e centralizado -->
+    <div class="w-[393px] h-[852px] border-4 border-black rounded-3xl
+                flex flex-col items-center justify-center p-8 bg-white shadow-xl space-y-6">
+
+        <!-- A logo do Unilink, com o src certinho e fallback caso não carregue! -->
+        <img src="img/logo_unilink.png" alt="Logo Unilink" class="rounded-lg mb-0"
+             onerror="this.onerror=null;this.src='https://placehold.co/236x229/4F603E/FFFFFF?text=LOGO+UNILINK';"
+             style="width: 236px; height: 229px;">
+
+        <!-- O novo título da tela, "Dados pessoais:", porque a gente é clara! -->
+        <h2 class="text-2xl font-semibold text-gray-800 !mt-4">Dados pessoais:</h2>
+
+        <!-- Input para o Nome, seguindo o padrão -->
+        <input type="text" id="nomeCadastro" placeholder="Nome"
+               class="input-button-size border-2 border-gray-300 rounded-[18px] px-4 py-2 !mt-4
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700">
+
+        <!-- Input para Data de Nascimento, com o placeholder formatado -->
+        <input type="text" id="dataNascimento" placeholder="Data de Nascimento (dd/MM/aaaa)"
+               class="input-button-size border-2 border-gray-300 rounded-[18px] px-4 py-2 !mt-4
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700">
+
+        <!-- Contêiner flexível para os dois inputs divididos, com espaçamento bafônico! -->
+        <div class="flex justify-between w-full gap-4 !mt-4" style="width: 314px;">
+            <!-- Input para Curso, metade da largura -->
+            <input type="text" id="cursoCadastro" placeholder="Curso"
+                   class="w-1/2 border-2 border-gray-300 rounded-[18px] px-4 py-2 !mt-0
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+                   style="height: 35.5px;">
+
+            <!-- Input para Prédio, a outra metade da largura -->
+            <input type="text" id="predioCadastro" placeholder="Prédio"
+                   class="w-1/2 border-2 border-gray-300 rounded-[18px] px-4 py-2 !mt-0
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+                   style="height: 35.5px;">
+        </div>
+
+        <!-- Espaço para a mensagem de erro, sempre discreta até a hora de aparecer! -->
+        <div id="errorMessage" class="text-red-500 text-sm mt-2 text-center hidden !mt-4"></div>
+
+        <!-- Botão "Prosseguir", agora com o direcionamento certinho para criarconta3.html! -->
+        <button id="prosseguirButton" class="input-button-size bg-[#4f603e] text-white font-bold rounded-[18px] !mt-4
+                       hover:bg-opacity-90 transition duration-300 ease-in-out">
+            Prosseguir
+        </button>
+
+        <!-- Separador dramático, porque a vida é feita de escolhas, bicha! -->
+        <div class="text-gray-500 !mt-4">--------- Ou ---------</div>
+
+        <!-- Botão "Voltar para o login", continua firme no login1.html! -->
+        <button id="voltarLoginButton" class="input-button-size bg-[#4f603e] bg-opacity-50 text-white font-bold rounded-[18px] !mt-4
+                       hover:bg-opacity-75 transition duration-300 ease-in-out">
+            Voltar para o login
+        </button>
+    </div>
+
+    <script>
+        // Pegando os elementos da tela, tudo no controle!
+        const nomeInput = document.getElementById('nomeCadastro');
+        const dataNascimentoInput = document.getElementById('dataNascimento');
+        const cursoInput = document.getElementById('cursoCadastro');
+        const predioInput = document.getElementById('predioCadastro');
+        const prosseguirButton = document.getElementById('prosseguirButton');
+        const voltarLoginButton = document.getElementById('voltarLoginButton');
+        const errorMessageDiv = document.getElementById('errorMessage');
+
+        // Adiciona um evento de clique para o botão Prosseguir
+        prosseguirButton.addEventListener('click', function() {
+            // Limpa a mensagem de erro anterior, porque a gente não vive de passado
+            errorMessageDiv.textContent = '';
+            errorMessageDiv.classList.add('hidden');
+
+            const nome = nomeInput.value;
+            const dataNascimento = dataNascimentoInput.value;
+            const curso = cursoInput.value;
+            const predio = predioInput.value;
+
+            // Validação simples, mas eficiente: preencheu tudo, amada?
+            if (!nome || !dataNascimento || !curso || !predio) {
+                errorMessageDiv.textContent = 'Preencha todos os dados';
+                errorMessageDiv.classList.remove('hidden');
+                return;
+            }
+
+            // Se tudo estiver preenchido, a gente avança!
+            window.location.href = "criarconta3.html"; // Redireciona para a próxima etapa, porque a gente é pra frente!
+        });
+
+        // Adiciona um evento de clique para o botão Voltar para o login
+        voltarLoginButton.addEventListener('click', function() {
+            window.location.href = "login1.html"; // Volta para a página de login principal, como um boomerang!
+        });
+    </script>
+</body>
+</html>

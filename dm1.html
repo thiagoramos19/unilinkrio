@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mensagens Diretas - Unilink</title>
+    <!-- Inclui o Tailwind CSS, porque a gente não vive sem esse luxo! -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* A família Inter, porque a gente ama consistência e um visual clean! */
+        body {
+            font-family: "Nunito", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; /* Um fundinho neutro pra não brigar com o cabeçalho */
+            display: flex; /* Para centralizar o contêiner principal */
+            justify-content: center; /* Centra horizontalmente o contêiner principal */
+            align-items: center; /* Centra verticalmente o contêiner principal */
+            min-height: 100vh; /* Garante que o corpo ocupa toda a altura da tela */
+        }
+
+        /* Classes para os botões e inputs menores, com bordas arredondadas como a gente gosta */
+        .rounded-14px {
+            border-radius: 14px;
+        }
+
+        /* Estilo para o link da mensagem para que o bloco inteiro seja clicável */
+        .message-link {
+            display: flex; /* Mantém o layout flexível do message-entry */
+            align-items: flex-start; /* Alinha os itens ao topo */
+            padding: 8px; /* Padding interno para o clique */
+            border-bottom: 1px solid #e2e8f0; /* Borda inferior para separar as mensagens */
+            text-decoration: none; /* Remove sublinhado padrão do link */
+            color: inherit; /* Herda a cor do texto */
+            transition: background-color 0.2s ease-in-out; /* Transição suave ao passar o mouse */
+        }
+
+        .message-link:hover {
+            background-color: #f0f0f0; /* Cor de fundo ao passar o mouse */
+        }
+    </style>
+</head>
+<body>
+    <!-- O contêiner principal, com todo o charme do nosso retângulo e borda! -->
+    <div class="w-[393px] h-[852px] border-4 border-black rounded-3xl
+                flex flex-col bg-white shadow-xl overflow-hidden relative">
+        
+        <!-- O cabeçalho mais babado que você vai ver hoje! -->
+        <header class="w-full h-[60px] bg-[#e5a1ae] flex items-center justify-between px-4 shadow-md z-10">
+            <!-- Seta para voltar para a home -->
+            <a href="home1.html" class="text-white text-2xl font-bold">
+                &larr; <!-- Seta para a esquerda -->
+            </a>
+            <!-- O título "unilink" no centro, em negrito e branco divo! -->
+            <div class="text-white font-bold text-xl">unilink</div>
+            <!-- Espaço vazio para alinhar o título ao centro -->
+            <div class="w-[46px] h-[46px]"></div> 
+        </header>
+
+        <!-- Conteúdo principal da página de DMs -->
+        <main class="flex-grow overflow-y-auto overflow-x-hidden p-4 relative z-0 flex flex-col">
+            <!-- Primeira conversa: Ciclano (AGORA CLICÁVEL!) -->
+            <a href="ciclano.html" class="message-link">
+                <!-- Foto de perfil do Ciclano -->
+                <img src="img/ciclano.png" alt="Foto de Perfil do Ciclano" class="w-[42px] h-[42px] rounded-full object-cover mr-2"
+                     onerror="this.onerror=null;this.src='https://placehold.co/42x42/cccccc/000000?text=C';">
+
+                <div class="flex-grow flex flex-col">
+                    <!-- Nome e Horário -->
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-[11px] text-gray-800">Ciclano - CCH - Biblioteconomia</span>
+                        <span class="text-[10px] text-gray-500">12:21</span>
+                    </div>
+
+                    <!-- Conteúdo da Mensagem -->
+                    <div class="flex items-center">
+                        <img src="img/mensagemrecebida.png" alt="Ícone de Mensagem Recebida" class="w-[20px] h-[20px] object-contain mr-1"
+                             onerror="this.onerror=null;this.src='https://placehold.co/20x20/cccccc/000000?text=MSG';">
+                        <span class="text-[11px] text-gray-700">Ciclano???</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Segunda conversa: Unibot (AGORA CLICÁVEL!) -->
+            <a href="unibot.html" class="message-link">
+                <!-- Foto de perfil do Unibot -->
+                <img src="img/unibot.png" alt="Foto de Perfil do Unibot" class="w-[42px] h-[42px] rounded-full object-cover mr-2"
+                     onerror="this.onerror=null;this.src='https://placehold.co/42x42/cccccc/000000?text=UB';">
+
+                <div class="flex-grow flex flex-col">
+                    <!-- Nome do Unibot e Horário -->
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-[11px] text-gray-800">Unibot</span>
+                        <span class="text-[10px] text-gray-500">12:20</span> 
+                    </div>
+
+                    <!-- Conteúdo da Mensagem do Unibot -->
+                    <div class="flex items-center">
+                        <!-- Sem imagem de mensagem recebida para o bot -->
+                        <span class="text-[11px] text-gray-700">Venha ver o cardápio do bandejão, horário de aul...</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Terceira conversa: Beltrana (AGORA CLICÁVEL!) -->
+            <a href="beltrana.html" class="message-link">
+                <!-- Foto de perfil da Beltrana -->
+                <img src="img/beltrana.png" alt="Foto de Perfil da Beltrana" class="w-[42px] h-[42px] rounded-full object-cover mr-2"
+                     onerror="this.onerror=null;this.src='https://placehold.co/42x42/cccccc/000000?text=B';">
+
+                <div class="flex-grow flex flex-col">
+                    <!-- Nome da Beltrana e Horário -->
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-[11px] text-gray-800">Beltrana - CCH - História</span>
+                        <span class="text-[10px] text-gray-500">12:15</span> 
+                    </div>
+
+                    <!-- Conteúdo da Mensagem da Beltrana (sem ícone de mensagem recebida) -->
+                    <div class="flex items-center">
+                        <span class="text-[11px] text-gray-700">Virou seu amigo, inicie uma conversa!</span>
+                    </div>
+                </div>
+            </a>
+            <!-- Adicione mais conversas aqui conforme a gente for fofocando sobre o layout -->
+        </main>
+
+        <!-- Rodapé DIVO! Fixo na parte inferior do contêiner principal (como na home) -->
+        <footer class="w-full h-[60px] bg-[#4f603e] flex items-center justify-around px-4 z-10">
+            <!-- Ícone Home -->
+            <img src="img/home.png" alt="Ícone Home" class="w-[36px] h-[36px] object-contain"
+                 onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=H';">
+            
+            <!-- Ícone Pesquisar -->
+            <a href="usuarios.html">
+                <img src="img/pesquisar.png" alt="Ícone Pesquisar" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=P';">
+            </a>
+
+            <!-- Ícone Quiz -->
+            <a href="quiz.html">
+                <img src="img/quiz.png" alt="Ícone Quiz" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=Q';">
+            </a>
+
+            <!-- Ícone Jogaprolo -->
+            <a href="jogaprolo.html">
+                <img src="img/jogaprolo.png" alt="Ícone Jogaprolo" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=J';">
+            </a>
+
+            <!-- Ícone Agenda -->
+            <a href="agenda.html">
+                <img src="img/agenda.png" alt="Ícone Agenda" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=A';">
+            </a>
+
+            <!-- Ícone Seu Perfil -->
+            <a href="seuperfil.html">
+                <img src="img/seuperfil.png" alt="Ícone Seu Perfil" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=S';">
+            </a>
+        </footer>
+    </div>
+</body>
+</html>

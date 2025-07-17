@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Unilink</title>
+    <!-- Inclui o Tailwind CSS, porque a gente não vive sem ele! -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* A família Inter, porque a gente gosta de consistência */
+        body {
+            font-family: "Nunito", sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center; /* Centra horizontalmente o retângulo principal */
+            align-items: center; /* Centra verticalmente o retângulo principal */
+            min-height: 100vh; /* Garante que o corpo ocupa toda a altura da tela */
+            background-color: #f0f0f0; /* Um fundinho básico pra não brigar com o rosa */
+        }
+
+        /* Classes personalizadas para o tamanho exato dos inputs e botões, tudo padronizado! */
+        .input-button-size {
+            width: 314px;
+            height: 35.5px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <!-- O retângulo principal, com todo o charme e centralizado, como a gente ama! -->
+    <div class="w-[393px] h-[852px] border-4 border-black rounded-3xl
+                flex flex-col items-center justify-center p-8 bg-white shadow-xl space-y-6">
+
+        <!-- A logo do Unilink, que agora você sabe que eu sei o src! -->
+        <img src="img/logo_unilink.png" alt="Logo Unilink" class="rounded-lg mb-0"
+             onerror="this.onerror=null;this.src='https://placehold.co/236x229/000000/FFFFFF?text=LOGO+UNILINK';"
+             style="width: 236px; height: 229px;">
+
+        <!-- O título da tela, ajustado para "Faça seu cadastro", porque a gente é esperta! -->
+        <h2 class="text-2xl font-semibold text-gray-800 !mt-4">Faça seu cadastro:</h2>
+
+        <!-- Caixa de texto para o Email, redondinha e pronta pra @edu.unirio.br -->
+        <input type="email" id="emailCadastro" placeholder="Email (@edu.unirio.br)"
+               class="input-button-size border-2 border-gray-300 rounded-[18px] px-4 py-2 !mt-4
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700">
+
+        <!-- Caixa de texto para a Senha, toda discreta e segura -->
+        <input type="password" id="senhaCadastro" placeholder="Senha"
+               class="input-button-size border-2 border-gray-300 rounded-[18px] px-4 py-2 !mt-4
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700">
+
+        <!-- Caixa de texto para Confirmar Senha, pra não ter erro, bicha! -->
+        <input type="password" id="confirmarSenhaCadastro" placeholder="Confirmar Senha"
+               class="input-button-size border-2 border-gray-300 rounded-[18px] px-4 py-2 !mt-4
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700">
+
+        <!-- Espaço para as mensagens de erro, tudo visível e vermelhinho quando precisar! -->
+        <div id="errorMessage" class="text-red-500 text-sm !mt-4 text-center hidden "></div>
+
+        <!-- Botão "Prosseguir", porque a gente avança! -->
+        <button id="prosseguirButton" class="input-button-size bg-[#4f603e] text-white font-bold rounded-[18px] !mt-4
+                       hover:bg-opacity-90 transition duration-300 ease-in-out">
+            Prosseguir
+        </button>
+
+        <!-- Separador dramático, porque a gente não perde o costume! -->
+        <div class="text-gray-500 !mt-4 ">--------- Ou ---------</div>
+
+        <!-- Botão "Voltar para o login", para caso a pessoa mude de ideia! -->
+        <button id="voltarLoginButton" class="input-button-size bg-[#4f603e] bg-opacity-50 text-white font-bold rounded-[18px] !mt-4
+                       hover:bg-opacity-75 transition duration-300 ease-in-out">
+            Voltar para o login
+        </button>
+    </div>
+
+    <script>
+        // Pegando os elementos da tela, tudo no controle!
+        const emailInput = document.getElementById('emailCadastro');
+        const senhaInput = document.getElementById('senhaCadastro');
+        const confirmarSenhaInput = document.getElementById('confirmarSenhaCadastro');
+        const prosseguirButton = document.getElementById('prosseguirButton');
+        const voltarLoginButton = document.getElementById('voltarLoginButton');
+        const errorMessageDiv = document.getElementById('errorMessage');
+
+        // Adiciona um evento de clique para o botão Prosseguir
+        prosseguirButton.addEventListener('click', function() {
+            // Limpa a mensagem de erro anterior, porque a gente é organizada
+            errorMessageDiv.textContent = '';
+            errorMessageDiv.classList.add('hidden');
+
+            const email = emailInput.value;
+            const senha = senhaInput.value;
+            const confirmarSenha = confirmarSenhaInput.value;
+
+            // Lógica de validação super detalhada, do jeitinho que você pediu!
+            if (!email || !senha || !confirmarSenha) {
+                errorMessageDiv.textContent = 'Preencha todos os dados';
+                errorMessageDiv.classList.remove('hidden');
+                return;
+            }
+
+            if (!email.endsWith('@edu.unirio.br')) {
+                errorMessageDiv.textContent = 'Email não é da UNIRIO!';
+                errorMessageDiv.classList.remove('hidden');
+                return;
+            }
+
+            if (senha !== confirmarSenha) {
+                errorMessageDiv.textContent = 'Senhas diferentes!';
+                errorMessageDiv.classList.remove('hidden');
+                return;
+            }
+
+            // Se chegou aqui, é porque tá tudo validado!
+            window.location.href = "criarconta2.html"; // Agora sim, direcionando para a próxima etapa!
+        });
+
+        // Adiciona um evento de clique para o botão Voltar para o login
+        voltarLoginButton.addEventListener('click', function() {
+            window.location.href = "login1.html"; // Redireciona para a página de login principal, que agora se chama login1.html!
+        });
+    </script>
+</body>
+</html>

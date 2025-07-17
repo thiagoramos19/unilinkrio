@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beltrana - Unilink Chat</title>
+    <!-- Inclui o Tailwind CSS para estilização chique, bicha! -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* A família Inter, porque a gente ama consistência e um visual clean! */
+        body {
+            font-family: "Nunito", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; /* Um fundinho neutro pra não brigar com o cabeçalho */
+            display: flex; /* Para centralizar o contêiner principal */
+            justify-content: center; /* Centra horizontalmente o contêiner principal */
+            align-items: center; /* Centra verticalmente o contêiner principal */
+            min-height: 100vh; /* Garante que o corpo ocupa toda a altura da tela */
+        }
+
+        /* Classes para os botões e inputs menores, com bordas arredondadas como a gente gosta */
+        .rounded-14px {
+            border-radius: 14px;
+        }
+
+        /* Estilos para as bolhas de mensagem */
+        .message-bubble {
+            max-width: 75%; /* Limita a largura da bolha */
+            padding: 8px 12px;
+            border-radius: 18px; /* Cantos arredondados */
+            margin-bottom: 8px; /* Espaçamento entre as mensagens */
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .message-sent {
+            background-color: #4f603e; /* Cor para mensagens enviadas (verde/oliva) */
+            color: white;
+            align-self: flex-end; /* Alinha à direita */
+        }
+
+        .message-received {
+            background-color: #e5a1ae; /* Cor para mensagens recebidas (rosa/roxo) */
+            color: black;
+            align-self: flex-start; /* Alinha à esquerda */
+        }
+
+        .timestamp {
+            font-size: 9.5px; /* Tamanho da fonte do timestamp */
+            color: rgba(255, 255, 255, 0.7); /* Cor mais suave para o timestamp em mensagens enviadas */
+            align-self: flex-end; /* Alinha à direita dentro da bolha */
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+        }
+        .message-received .timestamp {
+            color: rgba(0, 0, 0, 0.5); /* Cor mais suave para o timestamp em mensagens recebidas */
+        }
+
+        .checkmark-icon {
+            width: 12px; /* Tamanho do ícone de checkmark */
+            height: 12px;
+            margin-left: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- O contêiner principal, com todo o charme do nosso retângulo e borda! -->
+    <div class="w-[393px] h-[852px] border-4 border-black rounded-3xl
+                flex flex-col bg-white shadow-xl overflow-hidden relative">
+        
+        <!-- O cabeçalho da página de chat da Beltrana -->
+        <header class="w-full h-[60px] bg-[#e5a1ae] flex items-center justify-between px-4 shadow-md z-10">
+            <!-- Seta para voltar para a página de DMs -->
+            <a href="dm1.html" class="text-white text-2xl font-bold">
+                &larr; <!-- Seta para a esquerda -->
+            </a>
+            
+            <!-- Informações do contato no centro (Beltrana) -->
+            <div class="flex items-center flex-grow justify-center">
+                <img src="img/beltrana.png" alt="Foto de Perfil da Beltrana" class="w-[42px] h-[42px] rounded-full object-cover mr-2"
+                     onerror="this.onerror=null;this.src='https://placehold.co/42x42/cccccc/000000?text=B';">
+                <div class="flex flex-col items-start">
+                    <span class="font-bold text-[11px] text-white">Beltrana - CCH - História</span>
+                    <span class="text-[10px] text-white opacity-80">online</span>
+                </div>
+            </div>
+            
+            <!-- Espaço vazio para alinhar o título ao centro (sem ícone de vídeo chamada) -->
+            <div class="w-[24px] h-[24px]"></div> 
+        </header>
+
+        <!-- Conteúdo principal do chat - mensagens -->
+        <main id="chatMessages" class="flex-grow overflow-y-auto overflow-x-hidden p-4 relative z-0 flex flex-col">
+            <!-- Mensagem inicial da Beltrana (agora como um aviso centralizado) -->
+            <div class="w-full text-center py-4 text-gray-500 text-[11px]">
+                Virou seu amigo, inicie uma conversa!
+            </div>
+        </main>
+
+        <!-- Área de input de mensagem -->
+        <div class="w-full p-4 bg-white border-t border-gray-200 flex items-center">
+            <input type="text" id="messageInput" placeholder="Digite sua mensagem..."
+                   class="flex-grow h-[35.5px] rounded-[18px] border-2 border-gray-300 px-4 py-2
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 text-sm">
+            <button id="sendMessageButton" class="w-[54px] h-[35.5px] bg-[#e5a1ae] rounded-[18px] border-2 border-black flex items-center justify-center ml-2">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Rodapé DIVO! Fixo na parte inferior do contêiner principal -->
+        <footer class="w-full h-[60px] bg-[#4f603e] flex items-center justify-around px-4 z-10">
+            <!-- Ícone Home -->
+            <img src="img/home.png" alt="Ícone Home" class="w-[36px] h-[36px] object-contain"
+                 onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=H';">
+            
+            <!-- Ícone Pesquisar -->
+            <a href="usuarios.html">
+                <img src="img/pesquisar.png" alt="Ícone Pesquisar" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=P';">
+            </a>
+
+            <!-- Ícone Quiz -->
+            <a href="quiz.html">
+                <img src="img/quiz.png" alt="Ícone Quiz" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=Q';">
+            </a>
+
+            <!-- Ícone Jogaprolo -->
+            <a href="jogaprolo.html">
+                <img src="img/jogaprolo.png" alt="Ícone Jogaprolo" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=J';">
+            </a>
+
+            <!-- Ícone Agenda -->
+            <a href="agenda.html">
+                <img src="img/agenda.png" alt="Ícone Agenda" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=A';">
+            </a>
+
+            <!-- Ícone Seu Perfil -->
+            <a href="seuperfil.html">
+                <img src="img/seuperfil.png" alt="Ícone Seu Perfil" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=S';">
+            </a>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const messageInput = document.getElementById('messageInput');
+            const sendMessageButton = document.getElementById('sendMessageButton');
+            const chatMessages = document.getElementById('chatMessages');
+
+            function sendMessage() {
+                const messageText = messageInput.value.trim();
+                if (messageText === '') {
+                    return; // Não envia mensagens vazias
+                }
+
+                // Cria a nova bolha de mensagem enviada
+                const newMessageBubble = document.createElement('div');
+                newMessageBubble.classList.add('message-bubble', 'message-sent');
+
+                const messageSpan = document.createElement('span');
+                messageSpan.textContent = messageText;
+
+                const timestampSpan = document.createElement('span');
+                timestampSpan.classList.add('timestamp');
+                
+                // Pega o horário atual no formato HH:MM
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                timestampSpan.textContent = `${hours}:${minutes}`;
+
+                const checkmarkIcon = document.createElement('img');
+                checkmarkIcon.src = 'https://placehold.co/12x12/4f603e/FFFFFF?text=%E2%9C%93'; // Ícone de checkmark
+                checkmarkIcon.classList.add('checkmark-icon');
+                checkmarkIcon.alt = 'Checkmark';
+                checkmarkIcon.onerror = function() { this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMiIgaGVpZ2h0PSIxMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIwIDZMMTAgMTZMNCAxMCI+PC9wYXRoPjwvc3ZnPg=='; };
+
+
+                timestampSpan.appendChild(checkmarkIcon);
+                newMessageBubble.appendChild(messageSpan);
+                newMessageBubble.appendChild(timestampSpan);
+
+                // Adiciona a nova mensagem ao chat
+                chatMessages.appendChild(newMessageBubble);
+
+                // Limpa a caixa de texto
+                messageInput.value = '';
+
+                // Rola para o final do chat para mostrar a nova mensagem
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // Evento de clique para o botão de enviar
+            if (sendMessageButton) {
+                sendMessageButton.addEventListener('click', sendMessage);
+            }
+
+            // Evento de tecla para enviar com 'Enter'
+            if (messageInput) {
+                messageInput.addEventListener('keypress', (event) => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault(); // Evita quebra de linha no input
+                        sendMessage();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

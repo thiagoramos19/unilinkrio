@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz - Unilink</title>
+    <!-- Inclui o Tailwind CSS para estilização chique, bicha! -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* A família Inter, porque a gente ama consistência e um visual clean! */
+        body {
+            font-family: "Nunito", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; /* Um fundinho neutro pra não brigar com o cabeçalho */
+            display: flex; /* Para centralizar o contêiner principal */
+            justify-content: center; /* Centra horizontalmente o contêiner principal */
+            align-items: center; /* Centra verticalmente o contêiner principal */
+            min-height: 100vh; /* Garante que o corpo ocupa toda a altura da tela */
+            overflow: hidden; /* Garante que não haja scrollbar no body */
+        }
+
+        /* Classes para os botões e inputs menores, com bordas arredondadas como a gente gosta */
+        .rounded-14px {
+            border-radius: 14px;
+        }
+
+        /* Estilos para o container principal da tela do quiz */
+        .quiz-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Estilos para os radio buttons customizados */
+        .custom-radio {
+            appearance: none; /* Esconde o radio button padrão */
+            width: 24px;
+            height: 24px;
+            border: 2px solid black;
+            border-radius: 50%; /* Faz a bolinha */
+            cursor: pointer;
+            position: relative;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+        .custom-radio:checked {
+            background-color: #4f603e; /* Cor de fundo quando selecionado */
+            border-color: #4f603e;
+        }
+        .custom-radio:checked::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: white;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Estilos para os itens arrastáveis */
+        .draggable-item {
+            width: 150px;
+            height: 40px;
+            background-color: #4f603e;
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 8px;
+            cursor: grab;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Estilos para as zonas de drop */
+        .drop-zone {
+            width: 150px;
+            height: 50px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            color: black;
+            border: 2px dashed gray; /* Borda tracejada para indicar drop zone */
+            position: relative; /* Para posicionar o texto */
+        }
+        .drop-zone.drag-over {
+            border-color: #004aad; /* Cor da borda ao arrastar sobre */
+            background-color: #e0e0e0;
+        }
+        .drop-zone.filled {
+            border: none; /* Remove a borda tracejada quando preenchido */
+        }
+
+        /* Cores específicas para as zonas de drop */
+        .drop-zone.yellow { background-color: #FFD700; }
+        .drop-zone.gray { background-color: #D3D3D3; }
+        .drop-zone.orange { background-color: #FFA500; }
+
+        /* Estilo para o slider */
+        .slider-container {
+            width: 80%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .slider-container input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+            -webkit-appearance: none; /* Remove default styling */
+            appearance: none;
+        }
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4f603e;
+            cursor: pointer;
+            box-shadow: 0 0 2px rgba(0,0,0,0.5);
+        }
+        .slider-container input[type="range"]::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4f603e;
+            cursor: pointer;
+            box-shadow: 0 0 2px rgba(0,0,0,0.5);
+        }
+        .slider-labels {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #4f603e;
+            font-weight: bold;
+        }
+
+        /* Estilo para a raspadinha */
+        .scratch-card {
+            width: 250px;
+            height: 350px;
+            background-color: #606060; /* Cor inicial da raspadinha */
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden; /* Garante que a imagem não vaze */
+        }
+        .scratch-card-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: transparent; /* Transparente para mostrar o fundo */
+            opacity: 0; /* Inicialmente invisível */
+            transition: opacity 0.5s ease-in-out;
+        }
+        .scratch-card.revealed .scratch-card-content {
+            opacity: 1; /* Fica visível ao revelar */
+        }
+        .scratch-card-content img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+        .scratch-card-content .name {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .scratch-card-content .course {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .scratch-card-content .add-friend-button {
+            margin-top: 15px;
+            width: 43px;
+            height: 43px;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid gray;
+        }
+
+        /* Estilos para os botões de emoji */
+        .emoji-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            border: 2px solid transparent; /* Borda transparente por padrão */
+            transition: border-color 0.2s ease-in-out;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px; /* Tamanho do emoji */
+        }
+        .emoji-button.selected {
+            border-color: #004aad; /* Borda azul quando selecionado */
+        }
+        .emoji-button img {
+            width: 50px; /* Tamanho da imagem do emoji */
+            height: 50px;
+            object-fit: contain;
+        }
+
+        /* Estilo para as estrelas de avaliação (no quiz) */
+        .quiz-star-rating img {
+            cursor: pointer;
+            width: 30px; /* Tamanho das estrelas no quiz */
+            height: 30px;
+        }
+        .quiz-star-rating {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <!-- O contêiner principal, com todo o charme do nosso retângulo e borda! -->
+    <div class="w-[393px] h-[852px] border-4 border-black rounded-3xl
+                flex flex-col bg-white shadow-xl overflow-hidden relative">
+        
+        <!-- O cabeçalho da página do Quiz -->
+        <header class="w-full h-[60px] bg-[#e5a1ae] flex items-center justify-between px-4 shadow-md z-10">
+            <!-- Título "unilink" no centro, em negrito e branco divo! -->
+            <div class="flex-grow text-center text-white font-bold text-xl">unilink</div>
+        </header>
+
+        <!-- Conteúdo principal do Quiz (controlado por JS) -->
+        <main id="quizContent" class="flex-grow overflow-y-hidden overflow-x-hidden p-4 relative z-0 flex flex-col items-center justify-center">
+            <!-- As telas do quiz serão injetadas aqui pelo JavaScript -->
+        </main>
+
+        <!-- Rodapé DIVO! Fixo na parte inferior do contêiner principal -->
+        <footer class="w-full h-[60px] bg-[#4f603e] flex items-center justify-around px-4 z-10">
+            <!-- Ícone Home -->
+            <a href="home1.html">
+                <img src="img/home.png" alt="Ícone Home" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=H';">
+            </a>
+            
+            <!-- Ícone Pesquisar -->
+            <a href="usuarios.html">
+                <img src="img/pesquisar.png" alt="Ícone Pesquisar" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=P';">
+            </a>
+
+            <!-- Ícone Quiz -->
+            <a href="quiz.html">
+                <img src="img/quiz.png" alt="Ícone Quiz" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=Q';">
+            </a>
+
+            <!-- Ícone Jogaprolo -->
+            <a href="jogaprolo.html">
+                <img src="img/jogaprolo.png" alt="Ícone Jogaprolo" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=J';">
+            </a>
+
+            <!-- Ícone Agenda -->
+            <a href="agenda.html">
+                <img src="img/agenda.png" alt="Ícone Agenda" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=A';">
+            </a>
+
+            <!-- Ícone Seu Perfil -->
+            <a href="seuperfil.html">
+                <img src="img/seuperfil.png" alt="Ícone Seu Perfil" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=S';">
+            </a>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const quizContent = document.getElementById('quizContent');
+            let currentQuizScreen = 0; // 0: Start, 1: Activities, 2: Drag & Drop, 3: Emoji, 4: Star Rating, 5: Slider, 6: Result
+
+            const users = [ // Dados dos usuários para o RioMatch
+                {
+                    id: 'ciclano',
+                    name: 'Ciclano',
+                    course: 'CCET', // Ajustado para o exemplo da imagem
+                    image: 'img/ciclano.png' // Imagem do Ciclano para o resultado
+                },
+                // Adicione outros usuários se tiver mais resultados de RioMatch
+                {
+                    id: 'fulano',
+                    name: 'Fulano',
+                    course: 'CCH',
+                    image: 'img/fulano.png'
+                },
+                {
+                    id: 'beltrana',
+                    name: 'Beltrana',
+                    course: 'IB',
+                    image: 'img/beltrana.png'
+                }
+            ];
+
+            const emojis = [
+                { id: 'feliz', src: 'img/emoji1.png', alt: 'Emoji Feliz' }, 
+                { id: 'triste', src: 'img/emoji2.png', alt: 'Emoji Triste' }, 
+                { id: 'neutro', src: 'img/emoji3.png', alt: 'Emoji Neutro' }, 
+                { id: 'bravo', src: 'img/emoji4.png', alt: 'Emoji Bravo' }, 
+                { id: 'apaixonado', src: 'img/emoji5.png', alt: 'Emoji Apaixonado' } 
+            ];
+
+
+            function showScreen(screenIndex) {
+                quizContent.innerHTML = ''; // Limpa o conteúdo anterior
+                currentQuizScreen = screenIndex;
+
+                if (screenIndex === 0) {
+                    // Tela 1: Início do Quiz (u_quiz1.png)
+                    quizContent.classList.add('quiz-screen');
+                    quizContent.innerHTML = `
+                        <h1 class="text-4xl font-bold text-gray-800 mb-6">RioMatch</h1>
+                        <img src="img/riomatchlogo.png" alt="RioMatch Logo" class="mb-8">
+                        <p class="text-xl text-gray-700 text-center mb-10">Com quem você combina mais?</p>
+                        <p class="text-xl text-gray-700 text-center mb-10">Vamos descobrir?</p>
+                        <button id="startQuizButton" class="bg-[#004aad] text-white font-bold py-3 px-8 rounded-14px text-lg shadow-md">
+                            Iniciar Quiz
+                        </button>
+                    `;
+                    document.getElementById('startQuizButton').addEventListener('click', () => showScreen(1));
+
+                } else if (screenIndex === 1) {
+                    // Tela 2: Seleção de Atividades (u_quiz2.png)
+                    quizContent.classList.add('quiz-screen');
+                    quizContent.innerHTML = `
+                        <h1 class="text-xl font-bold text-gray-800 text-center mb-8">Qual dessas atividades você curte?</h1>
+                        <p class="text-lg text-gray-700 text-center mb-8">Selecione uma!</p>
+                        <div class="flex flex-col items-start space-y-4 mb-10">
+                            <label class="inline-flex items-center text-lg text-gray-800">
+                                <input type="radio" class="custom-radio" name="activity" value="fofocar">
+                                Fofocar
+                            </label>
+                            <label class="inline-flex items-center text-lg text-gray-800">
+                                <input type="radio" class="custom-radio" name="activity" value="jogar">
+                                Jogar
+                            </label>
+                            <label class="inline-flex items-center text-lg text-gray-800">
+                                <input type="radio" class="custom-radio" name="activity" value="ouvir_musica">
+                                Ouvir música
+                            </label>
+                        </div>
+                        <button id="nextButton" class="bg-[#4f603e] text-white font-bold py-3 px-8 rounded-14px text-lg shadow-md hidden">
+                            Próximo <span class="ml-2">&gt;</span>
+                        </button>
+                    `;
+
+                    const radioButtons = quizContent.querySelectorAll('input[name="activity"]');
+                    const nextButton = document.getElementById('nextButton');
+
+                    radioButtons.forEach(radio => {
+                        radio.addEventListener('change', () => {
+                            if (radio.checked) {
+                                nextButton.classList.remove('hidden');
+                            }
+                        });
+                    });
+
+                    nextButton.addEventListener('click', () => showScreen(2));
+
+                } else if (screenIndex === 2) {
+                    // Tela 3: Monte seu Pódio (u_quiz3.png)
+                    quizContent.classList.add('quiz-screen');
+                    quizContent.innerHTML = `
+                        <h1 class="text-xl font-bold text-gray-800 text-center mb-8">Monte seu pódio:</h1>
+                        <p class="text-lg text-gray-700 text-center mb-8">Arraste e solte:</p>
+                        <div class="flex justify-center w-full mb-10">
+                            <div class="flex flex-col items-center mr-8" id="draggableItemsContainer">
+                                <!-- Draggable items will be populated here -->
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="drop-zone yellow" data-slot="1">1</div>
+                                <div class="drop-zone gray" data-slot="2">2</div>
+                                <div class="drop-zone orange" data-slot="3">3</div>
+                            </div>
+                        </div>
+                        <button id="nextButtonDragDrop" class="bg-[#4f603e] text-white font-bold py-3 px-8 rounded-14px text-lg shadow-md hidden">
+                            Próximo <span class="ml-2">&gt;</span>
+                        </button>
+                    `;
+
+                    const draggableItemsData = [
+                        { id: 'passar_materia', text: 'Passar na matéria', color: '#4f603e' },
+                        { id: 'ter_vida_social', text: 'Ter vida social', color: '#4f603e' },
+                        { id: 'dormir', text: 'Dormir', color: '#4f603e' },
+                    ];
+                    let currentDraggableItems = [...draggableItemsData]; // Copy for manipulation
+                    const dropZoneSlots = {
+                        '1': null,
+                        '2': null,
+                        '3': null
+                    };
+
+                    const draggableItemsContainer = document.getElementById('draggableItemsContainer');
+                    const dropZones = quizContent.querySelectorAll('.drop-zone');
+                    const nextButtonDragDrop = document.getElementById('nextButtonDragDrop');
+                    let draggedItem = null;
+                    let filledSlots = 0;
+
+                    function renderDraggableItems() {
+                        draggableItemsContainer.innerHTML = '';
+                        currentDraggableItems.forEach(itemData => {
+                            const item = document.createElement('div');
+                            item.classList.add('draggable-item');
+                            item.setAttribute('draggable', 'true');
+                            item.dataset.value = itemData.id; 
+                            item.textContent = itemData.text; 
+                            item.style.backgroundColor = itemData.color;
+                            draggableItemsContainer.appendChild(item);
+
+                            item.addEventListener('dragstart', (e) => {
+                                e.dataTransfer.setData('text/plain', item.dataset.value);
+                                draggedItem = item;
+                                setTimeout(() => {
+                                    item.style.display = 'none';
+                                }, 0);
+                            });
+                            item.addEventListener('dragend', () => {
+                                setTimeout(() => {
+                                    if (draggedItem && draggedItem.parentNode === draggableItemsContainer) { // Only show if not dropped into a zone
+                                        draggedItem.style.display = 'flex';
+                                    }
+                                    draggedItem = null;
+                                }, 0);
+                            });
+                        });
+                    }
+
+                    renderDraggableItems(); // Initial render
+
+                    dropZones.forEach(zone => {
+                        zone.addEventListener('dragover', (e) => {
+                            e.preventDefault();
+                            zone.classList.add('drag-over');
+                        });
+                        zone.addEventListener('dragleave', () => {
+                            zone.classList.remove('drag-over');
+                        });
+                        zone.addEventListener('drop', (e) => {
+                            e.preventDefault();
+                            zone.classList.remove('drag-over');
+                            const data = e.dataTransfer.getData('text/plain');
+                            const droppedDraggableItem = document.querySelector(`.draggable-item[data-value="${data}"]`);
+                            const slotName = zone.dataset.slot;
+
+                            if (droppedDraggableItem) {
+                                // If dropping from draggable area to an empty slot
+                                if (!zone.classList.contains('filled')) {
+                                    zone.textContent = droppedDraggableItem.textContent;
+                                    zone.classList.add('filled');
+                                    zone.style.backgroundColor = droppedDraggableItem.style.backgroundColor;
+                                    droppedDraggableItem.style.display = 'none';
+                                    dropZoneSlots[slotName] = { id: data, text: droppedDraggableItem.textContent, color: droppedDraggableItem.style.backgroundColor };
+                                    currentDraggableItems = currentDraggableItems.filter(item => item.id !== data);
+                                    renderDraggableItems(); // Re-render draggable area
+                                } else {
+                                    // If dropping from draggable area to a filled slot (swap)
+                                    const oldItemInSlot = dropZoneSlots[slotName];
+                                    if (oldItemInSlot) {
+                                        // Return old item to draggable area
+                                        currentDraggableItems.push({ id: oldItemInSlot.id, text: oldItemInSlot.text, color: oldItemInSlot.color });
+                                    }
+                                    zone.textContent = droppedDraggableItem.textContent;
+                                    zone.style.backgroundColor = droppedDraggableItem.style.backgroundColor;
+                                    droppedDraggableItem.style.display = 'none';
+                                    dropZoneSlots[slotName] = { id: data, text: droppedDraggableItem.textContent, color: droppedDraggableItem.style.backgroundColor };
+                                    currentDraggableItems = currentDraggableItems.filter(item => item.id !== data);
+                                    renderDraggableItems();
+                                }
+                            } else {
+                                // If dragging from one drop zone to another
+                                const sourceSlotId = e.dataTransfer.getData('text/plain');
+                                const sourceZone = document.querySelector(`.drop-zone[data-slot="${sourceSlotId}"]`);
+                                const sourceItem = dropZoneSlots[sourceSlotId];
+
+                                if (sourceZone && sourceItem && !zone.classList.contains('filled')) {
+                                    // Move item from source to target
+                                    zone.textContent = sourceItem.text;
+                                    zone.classList.add('filled');
+                                    zone.style.backgroundColor = sourceItem.color;
+                                    dropZoneSlots[slotName] = sourceItem;
+
+                                    // Clear source slot
+                                    sourceZone.textContent = sourceZone.dataset.slot;
+                                    sourceZone.classList.remove('filled');
+                                    sourceZone.style.backgroundColor = ''; // Reset background
+                                    dropZoneSlots[sourceSlotId] = null;
+                                } else if (sourceZone && sourceItem && zone.classList.contains('filled')) {
+                                    // Swap items between two filled drop zones
+                                    const targetItem = dropZoneSlots[slotName];
+
+                                    // Swap visual and data
+                                    zone.textContent = sourceItem.text;
+                                    zone.style.backgroundColor = sourceItem.color;
+                                    dropZoneSlots[slotName] = sourceItem;
+
+                                    sourceZone.textContent = targetItem.text;
+                                    sourceZone.style.backgroundColor = targetItem.color;
+                                    dropZoneSlots[sourceSlotId] = targetItem;
+                                }
+                            }
+
+                            // Check if all slots are filled
+                            filledSlots = Object.values(dropZoneSlots).filter(slot => slot !== null).length;
+                            if (filledSlots === 3) {
+                                nextButtonDragDrop.classList.remove('hidden');
+                            } else {
+                                nextButtonDragDrop.classList.add('hidden');
+                            }
+                        });
+                    });
+
+                    nextButtonDragDrop.addEventListener('click', () => showScreen(3)); // Next is now emoji screen
+
+                } else if (screenIndex === 3) {
+                    // Tela 4: Seleção de Emoji
+                    quizContent.classList.add('quiz-screen');
+                    quizContent.innerHTML = `
+                        <h1 class="text-xl font-bold text-gray-800 text-center mb-8">Qual emoji te representa hoje?</h1>
+                        <div class="flex justify-center flex-wrap gap-4 mb-10">
+                            ${emojis.map(emoji => `
+                                <button class="emoji-button" data-emoji-id="${emoji.id}">
+                                    <img src="${emoji.src}" alt="${emoji.alt}" onerror="this.onerror=null;this.src='https://placehold.co/50x50/cccccc/000000?text=${encodeURIComponent(emoji.alt.split(' ')[1])}';">
+                                </button>
+                            `).join('')}
+                        </div>
+                        <button id="nextButtonEmoji" class="bg-[#4f603e] text-white font-bold py-3 px-8 rounded-14px text-lg shadow-md hidden">
+                            Próximo <span class="ml-2">&gt;</span>
+                        </button>
+                    `;
+
+                    const emojiButtons = quizContent.querySelectorAll('.emoji-button');
+                    const nextButtonEmoji = document.getElementById('nextButtonEmoji');
+                    let selectedEmoji = null;
+
+                    emojiButtons.forEach(button => {
+                        button.addEventListener('click', () => {
+                            emojiButtons.forEach(btn => btn.classList.remove('selected'));
+                            button.classList.add('selected');
+                            selectedEmoji = button.dataset.emojiId;
+                            nextButtonEmoji.classList.remove('hidden');
+                        });
+                    });
+
+                    nextButtonEmoji.addEventListener('click', () => showScreen(4)); // Next is now star rating screen
+
+                } else if (screenIndex === 4) {
+                    // Tela 5: Avaliação do UCM com Estrelas (NOVA TELA!)
+                    quizContent.classList.add('quiz-screen');
+                    quizContent.innerHTML = `
+                        <h1 class="text-xl font-bold text-gray-800 text-center mb-8">Quantas estrelas você dá para o Universo Cinematográfico da Marvel?</h1>
+                        <div id="starRatingMCU" class="quiz-star-rating" data-rating="0">
+                            <img src="img/estrelaapagada.png" alt="Estrela 1" class="quiz-star-rating-img" data-value="1"
+                                 onerror="this.onerror=null;this.src='https://placehold.co/30x30/cccccc/000000?text=1';">
+                            <img src="img/estrelaapagada.png" alt="Estrela 2" class="quiz-star-rating-img" data-value="2"
+                                 onerror="this.onerror=null;this.src='https://placehold.co/30x30/cccccc/000000?text=2';">
+                            <img src="img/estrelaapagada.png" alt="Estrela 3" class="quiz-star-rating-img" data-value="3"
+                                 onerror="this.onerror=null;this.src='https://placehold.co/30x30/cccccc/000000?text=3';">
+                            <img src="img/estrelaapagada.png" alt="Estrela 4" class="quiz-star-rating-img" data-value="4"
+                                 onerror="this.onerror=null;this.src='https://placehold.co/30x30/cccccc/000000?text=4';">
+                            <img src="img/estrelaapagada.png" alt="Estrela 5" class="quiz-star-rating-img" data-value="5"
+                                 onerror="this.onerror=null;this.src='https://placehold.co/30x30/cccccc/000000?text=5';">
+                        </div>
+                        <button id="nextButtonStars" class="bg-[#4f603e] text-white font-bold py-3 px-8 rounded-14px text-lg shadow-md hidden">
+                            Próximo <span class="ml-2">&gt;</span>
+                        </button>
+                    `;
+
+                    const starRatingMCUContainer = document.getElementById('starRatingMCU');
+                    const mcuStars = starRatingMCUContainer.querySelectorAll('.quiz-star-rating-img');
+                    const nextButtonStars = document.getElementById('nextButtonStars');
+                    let currentMCUStarRating = 0;
+
+                    function updateMCUStars(value) {
+                        mcuStars.forEach((star, index) => {
+                            star.src = (index < value) ? 'img/estrelaacesa.png' : 'img/estrelaapagada.png';
+                            star.onerror = null;
+                        });
+                        starRatingMCUContainer.dataset.rating = value;
+                        currentMCUStarRating = value;
+                        if (value > 0) {
+                            nextButtonStars.classList.remove('hidden');
+                        } else {
+                            nextButtonStars.classList.add('hidden');
+                        }
+                    }
+
+                    // Initialize stars based on current rating (if any)
+                    updateMCUStars(parseInt(starRatingMCUContainer.dataset.rating));
+
+                    mcuStars.forEach(star => {
+                        star.addEventListener('click', function() {
+                            const value = parseInt(this.dataset.value);
+                            updateMCUStars(value);
+                        });
+                    });
+
+                    nextButtonStars.addEventListener('click', () => showScreen(5)); // Next is now slider screen
+
+                } else if (screenIndex === 5) {
+                    // Tela 6 (Antiga Tela 5): Slider de Confiança
+                    quizContent.classList.add('quiz-screen');
+                    quizContent.innerHTML = `
+                        <h1 class="text-xl font-bold text-gray-800 text-center mb-8">O quanto você gosta de festas?</h1>
+                        <div class="slider-container">
+                            <input type="range" min="0" max="100" value="50" class="slider" id="partySlider">
+                            <div class="slider-labels">
+                                <span>Pouco</span>
+                                <span>Muito</span>
+                            </div>
+                        </div>
+                        <button id="nextButtonSlider" class="bg-[#4f603e] text-white font-bold py-3 px-8 rounded-14px text-lg shadow-md mt-10">
+                            Próximo
+                        </button>
+                    `;
+                    document.getElementById('nextButtonSlider').addEventListener('click', () => showScreen(6)); // Next is now result screen
+
+                } else if (screenIndex === 6) {
+                    // Tela 7 (Antiga Tela 6): Resultado do RioMatch (u_quiz4_1.png, u_quiz4_2.png, u_quiz4_3.png)
+                    const matchedUser = users[0]; // Pegando o Ciclano como exemplo de RioMatch
+                    quizContent.classList.add('quiz-screen');
+                    quizContent.innerHTML = `
+                        <h1 class="text-xl font-bold text-gray-800 text-center mb-8">Seu RioMatch é:</h1>
+                        <div id="scratchCard" class="scratch-card">
+                            <p id="scratchText">Raspe para descobrir</p>
+                            <div id="revealedContent" class="scratch-card-content">
+                                <img src="${matchedUser.image}" alt="Foto de Perfil do ${matchedUser.name}" class="mb-4"
+                                     onerror="this.onerror=null;this.src='https://placehold.co/120x120/cccccc/000000?text=${matchedUser.name.charAt(0)}';">
+                                <span class="name">${matchedUser.name} - ${matchedUser.course}</span>
+                                <button class="add-friend-button">
+                                    <svg class="w-6 h-6 text-gray-700" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                    const scratchCard = document.getElementById('scratchCard');
+                    const scratchText = document.getElementById('scratchText');
+                    const revealedContent = document.getElementById('revealedContent');
+
+                    scratchCard.addEventListener('click', () => {
+                        scratchCard.classList.add('revealed');
+                        scratchText.style.display = 'none'; // Esconde o texto "Raspe para descobrir"
+                    });
+                }
+            }
+
+            // Inicia o quiz na primeira tela
+            showScreen(0);
+        });
+    </script>
+</body>
+</html>
+

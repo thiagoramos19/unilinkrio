@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Unilink</title>
+    <!-- Inclui o Tailwind CSS, porque a gente não vive sem esse luxo! -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* A família Inter, porque a gente ama consistência e um visual clean! */
+        body {
+            font-family: "Nunito", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; /* Um fundinho neutro pra não brigar com o cabeçalho */
+            display: flex; /* Para centralizar o contêiner principal */
+            justify-content: center; /* Centra horizontalmente o contêiner principal */
+            align-items: center; /* Centra verticalmente o contêiner principal */
+            min-height: 100vh; /* Garante que o corpo ocupa toda a altura da tela */
+        }
+
+        /* Classes para os botões e inputs menores, com bordas arredondadas como a gente gosta */
+        .rounded-14px {
+            border-radius: 14px;
+        }
+        
+        /* Estilo para a sobreposição escura do filtro */
+        .overlay {
+            position: fixed; /* Fixo na viewport */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Escurece 50% */
+            z-index: 20; /* Fica acima do conteúdo, mas abaixo do filtro */
+            display: none; /* Escondido por padrão */
+        }
+
+        /* Estilo para a sobreposição de qualquer Story (genérico) */
+        .story-overlay, .create-post-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Fundo preto semi-transparente para o story */
+            display: flex; /* Alterado para flex para que a visibilidade seja controlada APENAS pela classe 'hidden' */
+            justify-content: center;
+            align-items: center;
+            z-index: 50; /* Z-index mais alto para ficar acima de tudo */
+            /* Removido 'display: none;' daqui - agora é controlado pela classe 'hidden' do Tailwind */
+        }
+        .create-post-overlay .content-wrapper {
+             /* Cor azul para o conteúdo principal da tela de criar post */
+             background-color: #026dad;
+             /* degrade suave */
+             background: #026dad;
+             width: 393px;
+             height: 852px;
+             border-radius: 28px; /* Ajuste se precisar de borda redonda */
+             display: flex;
+             flex-direction: column;
+             overflow: hidden; /* Garante que o conteúdo não vaze */
+             border: 4px solid black; /* Borda preta como no celular */
+        }
+
+        
+        /* Área de clique para navegação em stories (metade esquerda/direita) */
+        .story-click-area {
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            cursor: pointer;
+            z-index: 1; /* Para estar acima da imagem, mas abaixo do botão de fechar */
+        }
+        .story-click-area.left { left: 0; z-index: 0; }
+        .story-click-area.right { right: 0; z-index: 0}
+
+        /* Estilo para as estrelas, para que fiquem clicáveis e na linha */
+        .star-rating img {
+            cursor: pointer;
+            display: inline-block; /* Garante que fiquem na mesma linha */
+        }
+
+        #main::-webkit-scrollbar {
+            
+    display: none; /* Esconde a barra de rolagem visualmente */
+    width: 0; /* Garante que não ocupe espaço horizontal */
+    height: 0; /* Garante que não ocupe espaço vertical */
+}
+    </style>
+</head>
+<body>
+    <!-- O contêiner principal, com todo o charme do nosso retângulo e borda! -->
+    <div class="w-[393px] h-[852px] border-4 border-black rounded-3xl
+                flex flex-col bg-white shadow-xl overflow-hidden relative">
+        
+        <!-- O cabeçalho mais babado que você vai ver hoje! Fixo no topo do contêiner! -->
+        <header class="w-full h-[60px] bg-[#e5a1ae] flex items-center justify-between px-4 shadow-md z-10">
+            <!-- O título "unilink" à esquerda, em negrito e branco divo! -->
+            <div class="text-white font-bold text-[25px]">unilink</div>
+
+            <!-- O ícone de DM à direita, centralizado e com link para dm1.html! -->
+            <a href="dm1.html">
+                <img src="img/dm_icon.png" alt="Ícone de Mensagens Diretas" class="h-[46px] w-[46px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/46x46/aaaaaa/FFFFFF?text=DM';"
+                     title="Mensagens Diretas">
+            </a>
+        </header>
+
+        <!-- Conteúdo principal da página. O padding-top compensa o cabeçalho fixo. -->
+        <main class="flex-grow overflow-y-auto overflow-x-hidden  relative z-0" id="main">
+            <!-- Retângulo da Timeline - AGORA COM O BOTÃO DE FILTRO DENTRO! -->
+            <div class="w-[179px] h-[29px] bg-[#ff6479] rounded-14px flex items-center justify-between px-2 relative mx-auto mt-4 mb-4">
+                <span class="text-black font-bold text-[18px] ml-1">Timeline</span>
+                
+                <!-- Botão de Filtro com ícone, AGORA DENTRO DO RETÂNGULO E ALINHADO! -->
+                <button id="filterButton" class="w-[43px] h-[22px] bg-[#ffb5a6] rounded-14px
+                                     flex items-center justify-center shadow-md ml-auto">
+                    <img src="img/filtro_icon.png" alt="Ícone de Filtro" class="w-[15px] h-[15px] object-contain"
+                         onerror="this.onerror=null;this.src='https://placehold.co/15x15/ffb5a6/000000?text=F';"
+                         title="Filtro">
+                </button>
+            </div>
+
+            <!-- Barra de Stories (sem scroll horizontal, os itens quebram linha se não couberem) -->
+            <div class="w-full flex flex-wrap gap-4 px-2 py-1 pb-1 justify-start">
+                <!-- Story de Maria (com borda na nossa paleta e mini círculo de adição) -->
+                <div id="mariaStoryCircle" class="relative w-[63px] h-[63px] rounded-full border-[3px] border-black flex-shrink-0 flex items-center justify-center cursor-pointer">
+                    <img src="img/maria.png" alt="Story de Maria" class="w-[53px] h-[53px] rounded-full object-cover"
+                         onerror="this.onerror=null;this.src='https://placehold.co/53x53/cccccc/000000?text=M';"
+                    >
+                    <!-- Mini Círculo com + (para adicionar story) -->
+                    <div id="mariaAddButton" class="absolute bottom-0 right-0 w-[20px] h-[20px] rounded-full bg-[#000080] border-[2px] border-white flex items-center justify-center -mb-1 -mr-1 cursor-pointer">
+                        <span class="text-white font-bold text-sm">+</span>
+                    </div>
+                </div>
+
+                <!-- Story do Ciclano (com borda azul marinho) -->
+                <div id="ciclanoStoryCircle" class="relative w-[63px] h-[63px] rounded-full border-[3px] border-[#000080] flex-shrink-0 flex items-center justify-center cursor-pointer">
+                    <img src="img/ciclano.png" alt="Story do Ciclano" class="w-[53px] h-[53px] rounded-full object-cover"
+                         onerror="this.onerror=null;this.src='https://placehold.co/53x53/cccccc/000000?text=C';"
+                    >
+                </div>
+
+                <!-- Adicione mais stories aqui, se precisar de mais glamour! -->
+                <div class="relative w-[63px] h-[63px] rounded-full border-[3px] border-[#000080] flex-shrink-0 flex items-center justify-center">
+                    <img src="https://placehold.co/53x53/cccccc/000000?text=A" alt="Story do Amigo A" class="w-[53px] h-[53px] rounded-full object-cover"
+                    >
+                </div>
+                <div class="relative w-[63px] h-[63px] rounded-full border-[3px] border-[#000080] flex-shrink-0 flex items-center justify-center">
+                    <img src="https://placehold.co/53x53/cccccc/000000?text=B" alt="Story do Amigo B" class="w-[53px] h-[53px] rounded-full object-cover"
+                    >
+                </div>
+            </div>
+
+            <!-- Contêiner do Tweet do Fulano -->
+            <div class="tweet-card w-[383px] border-b-2 border-black flex flex-col justify-between pt-2 pb-2 mx-auto relative" data-campus="ccet" data-type="tweet">
+                <!-- Parte Superior do Tweet: Foto e Nome/Curso -->
+                <div class="flex items-center px-2">
+                    <img src="img/fulano.png" alt="Foto de Perfil do Fulano" class="w-[44px] h-[44px] rounded-full object-cover mr-2"
+                         onerror="this.onerror=null;this.src='https://placehold.co/44x44/cccccc/000000?text=F';">
+                    <span class="font-bold text-[14px] text-gray-800">Fulano - CCET - Sistemas de Informação</span>
+                </div>
+                <!-- Corpo do Tweet: Texto -->
+                <p class="text-[14px] text-justify text-gray-700 px-2 mt-1 mb-1 leading-tight">
+                    gente, tô fazendo uma pesquisa pra IHC - Modelo de Usuário, podem responder se puderem? obrigado!
+                    <a href="#" class="text-[#004aad] underline">bit.ly/unilink_rio</a>
+                </p>
+                <!-- Parte Inferior do Tweet: Ícones e Contagem de Likes -->
+                <div class="flex justify-between items-center px-2">
+                    <img id="fulanoAddIcon" src="img/adicionar.png" alt="Ícone de Adicionar" class="w-[20px] h-[20px] object-contain cursor-pointer"
+                         onerror="this.onerror=null;this.src='https://placehold.co/20x20/cccccc/000000?text=ADD';">
+                    <div class="flex items-center">
+                        <img src="img/like.png" alt="Ícone de Curtir" class="w-[20px] h-[20px] object-contain mr-1"
+                             onerror="this.onerror=null;this.src='https://placehold.co/20x20/cccccc/000000?text=LIKE';">
+                        <span class="font-bold text-[11px] text-gray-800">123</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contêiner do Tweet do Ciclano -->
+            <div class="tweet-card w-[383px] border-b-2 border-black flex flex-col justify-between pt-2 pb-2 mx-auto relative" data-campus="cch" data-type="tweet">
+                <!-- Parte Superior do Tweet: Foto e Nome/Curso -->
+                <div class="flex items-center px-2">
+                    <img src="img/ciclano.png" alt="Foto de Perfil do Ciclano" class="w-[44px] h-[44px] rounded-full object-cover mr-2"
+                         onerror="this.onerror=null;this.src='https://placehold.co/44x44/cccccc/000000?text=C';">
+                    <span class="font-bold text-[14px] text-gray-800">Ciclano - CCH - Biblioteconomia</span>
+                </div>
+                <!-- Retângulo Verde para Música/Mídia -->
+                <div class="w-[370px] h-[52px] bg-[#1ed760] rounded-lg flex items-center px-2 mx-auto my-2 relative">
+                    <img src="img/marinasena.png" alt="Capa da Música Marina Sena" class="w-[40px] h-[40px] rounded object-cover mr-2"
+                         onerror="this.onerror=null;this.src='https://placehold.co/40x40/000000/FFFFFF?text=MS';"
+                    >
+                    <div class="flex flex-col justify-center flex-grow">
+                        <span class="font-bold text-[13px] text-white">Escutando "Doçura (part. Çantamarta)"</span>
+                        <span class="text-[13px] text-white mt-0.5">De Marina Sena</span>
+                    </div>
+                    <!-- Botão de Ação no Retângulo Verde -->
+                    <div class="absolute right-2 top-1/2 -translate-y-1/2 w-[20px] h-[20px] rounded-full border-[1px] border-black flex items-center justify-center bg-white">
+                        <span class="text-black font-bold text-sm">+</span>
+                    </div>
+                </div>
+                
+                <!-- Estrelas de Avaliação -->
+                <div class="star-rating flex justify-between w-[360px] mx-auto mt-1 mb-1" data-rating="0">
+                    <img src="img/estrelaapagada.png" alt="Estrela 1" class="w-[25px] h-[25px]" data-value="1"
+                         onerror="this.onerror=null;this.src='https://placehold.co/20x20/cccccc/000000?text=E';">
+                    <img src="img/estrelaapagada.png" alt="Estrela 2" class="w-[25px] h-[25px]" data-value="2"
+                         onerror="this.onerror=null;this.src='https://placehold.co/20x20/cccccc/000000?text=E';">
+                    <img src="img/estrelaapagada.png" alt="Estrela 3" class="w-[25px] h-[25px]" data-value="3"
+                         onerror="this.onerror=null;this.src='https://placehold.co/20x20/cccccc/000000?text=E';">
+                    <img src="img/estrelaapagada.png" alt="Estrela 4" class="w-[25px] h-[25px]" data-value="4"
+                         onerror="this.onerror=null;this.src='https://placehold.co/20x20/cccccc/000000?text=E';">
+                    <img src="img/estrelaapagada.png" alt="Estrela 5" class="w-[25px] h-[25px]" data-value="5"
+                         onerror="this.onerror=null;this.src='https://placehold.co/20x20/cccccc/000000?text=E';">
+                </div>
+            </div>
+
+            <!-- Contêiner do Tweet da Beltrana -->
+            <div class="tweet-card w-[383px] border-b-2 border-black flex flex-col justify-between pt-2 pb-2 mx-auto relative" data-campus="cch" data-type="tweet">
+                <!-- Parte Superior do Tweet: Foto e Nome/Curso -->
+                <div class="flex items-center px-2">
+                    <img src="img/beltrana.png" alt="Foto de Perfil da Beltrana" class="w-[44px] h-[44px] rounded-full object-cover mr-2"
+                         onerror="this.onerror=null;this.src='https://placehold.co/44x44/cccccc/000000?text=B';">
+                    <span class="font-bold text-[14px] text-gray-800">Beltrana - CCH - História</span>
+                </div>
+                <!-- Retângulo Cinza Claro para Mídia -->
+                <div class="w-[370px] h-[52px] bg-gray-200 rounded-lg flex items-center px-2 mx-auto my-2 relative">
+                    <img src="img/folha.png" alt="Capa de Livro/Leitura" class="w-[40px] h-[40px] rounded object-cover mr-2"
+                         onerror="this.onerror=null;this.src='https://placehold.co/40x40/000000/FFFFFF?text=L';"
+                    >
+                    <div class="flex flex-col justify-center flex-grow">
+                        <span class="font-bold text-[13px] text-gray-800">Lendo "Por flores e gramados"</span>
+                        <span class="text-[13px] text-gray-800 mt-0.5">Por Roberta Castro</span>
+                    </div>
+                </div>
+                
+                <!-- Parte Inferior do Tweet: Ícones e Contagem de Likes -->
+                <div class="flex justify-between items-center px-2">
+                    <img src="img/adicionar.png" alt="Ícone de Adicionar" class="w-[20px] h-[20px] object-contain"
+                         onerror="this.onerror=null;this.src='https://placehold.co/20x20/cccccc/000000?text=ADD';">
+                    <div class="flex items-center">
+                        <img src="img/like.png" alt="Ícone de Curtir" class="w-[20px] h-[20px] object-contain mr-1"
+                             onerror="this.onerror=null;this.src='https://placehold.co/20x20/cccccc/000000?text=LIKE';">
+                        <span class="font-bold text-[11px] text-gray-800">123</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contêiner do Tweet: Oportunidade de Emprego -->
+            <div class="tweet-card w-[383px] border-b-2 border-black flex flex-col justify-between pt-2 pb-2 mx-auto relative" data-type="job-opening">
+                <!-- Parte Superior do Tweet: Foto e Título -->
+                <div class="flex items-center px-2">
+                    <div class="w-[44px] h-[44px] rounded-full bg-[#ff7a28] flex items-center justify-center mr-2">
+                        <img src="img/trabalho.png" alt="Ícone de Trabalho" class="w-[40px] h-[40px] object-contain"
+                             onerror="this.onerror=null;this.src='https://placehold.co/40x40/cccccc/000000?text=TRB';">
+                    </div>
+                    <span class="font-bold text-[14px] text-gray-800">Oportunidade de Emprego</span>
+                </div>
+                <!-- Corpo do Tweet: Texto -->
+                <p class="text-[14px] text-left text-gray-700 px-2 mt-1 mb-2 leading-tight">
+                    Vaga de Estágio como Instrutor de TI
+                </p>
+                <!-- Parte Inferior do Tweet: Botão Azul Claro e Likes -->
+                <div class="flex justify-between items-center px-2 w-full">
+                    <a href="http://www.vagas.com/instrutor_ti" target="_blank" class="w-[300px] h-[22px] bg-[#b7cee8] text-blue-800 rounded-14px flex items-center justify-center text-[14px] font-bold no-underline mr-2">
+                        www.vagas.com/instrutor_ti
+                    </a>
+                    <div class="flex items-center flex-shrink-0">
+                        <img src="img/like.png" alt="Ícone de Curtir" class="w-[20px] h-[20px] object-contain mr-1"
+                             onerror="this.onerror=null;this.src='https://placehold.co/20x20/cccccc/000000?text=LIKE';">
+                        <span class="font-bold text-[11px] text-gray-800">123</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Espaço vazio para ativar o scroll -->
+            <div class="w-[300px] h-[200px] bg-transparent mx-auto"></div>
+        </main>
+
+        <!-- Overlay para escurecer o fundo do filtro (NÃO MUDAR) -->
+        <div id="overlay" class="overlay"></div>
+
+        <!-- Retângulo de Filtro (NÃO MUDAR) -->
+        <div id="filterMenu" class="absolute top-[88px] left-1/2 -translate-x-1/2
+                                     w-[350px] h-[120px] bg-[#ffb5a6] rounded-14px
+                                     shadow-lg p-3 z-30 hidden flex flex-col items-start justify-between">
+            <!-- Switch "Apenas vagas de emprego" -->
+            <div class="flex items-center justify-between w-[calc(100%-20px)] mx-auto mt-2 mb-2">
+                <span class="text-black font-bold text-[20px] text-gray-800">Apenas vagas de emprego:</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" value="" class="sr-only peer" id="jobFilterSwitch">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                </label>
+            </div>
+
+            <div class="flex items-center justify-between w-[calc(100%-20px)] mx-auto mt-2 mb-2">
+                <span id="campusLabel" class="text-black font-bold text-[20px]">Campus/Prédio:</span>
+                <select id="campusSelect" class="bg-[#e86b70] text-white rounded-md p-1 text-[18px] focus:outline-none">
+                    <option value="todos">Todos</option>
+                    <option value="cch">CCH</option>
+                    <option value="ccet">CCET</option>
+                    <option value="ccjp">CCJP</option>
+                    <option value="ib">IB</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Rodapé DIVO! Fixo na parte inferior do contêiner principal (NÃO MUDAR) -->
+        <footer class="w-full h-[60px] bg-[#4f603e] flex items-center justify-around px-4 z-10">
+            <!-- Ícone Home -->
+            <img src="img/home.png" alt="Ícone Home" class="w-[36px] h-[36px] object-contain"
+                 onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=H';">
+            
+            <!-- Ícone Pesquisar -->
+            <a href="usuarios.html">
+                <img src="img/pesquisar.png" alt="Ícone Pesquisar" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=P';">
+            </a>
+
+            <!-- Ícone Quiz -->
+            <a href="quiz.html">
+                <img src="img/quiz.png" alt="Ícone Quiz" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=Q';">
+            </a>
+
+            <!-- Ícone Jogaprolo -->
+            <a href="jogaprolo.html">
+                <img src="img/jogaprolo.png" alt="Ícone Jogaprolo" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=J';">
+            </a>
+
+            <!-- Ícone Agenda -->
+            <a href="agenda.html">
+                <img src="img/agenda.png" alt="Ícone Agenda" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=A';">
+            </a>
+
+            <!-- Ícone Seu Perfil -->
+            <a href="seuperfil.html">
+                <img src="img/seuperfil.png" alt="Ícone Seu Perfil" class="w-[36px] h-[36px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/36x36/cccccc/FFFFFF?text=S';">
+            </a>
+        </footer>
+
+        <!-- Botão Flutuante de Adição (CHAMA O CRIAR POST AGORA!) -->
+        <button id="createPostFab" class="absolute bottom-[80px] right-[20px] w-[50px] h-[50px] rounded-full bg-[#026dad] border-[2px] border-black flex items-center justify-center text-white text-3xl font-bold shadow-lg z-40">
+            +
+        </button>
+
+    </div>
+
+    <!-- Sobreposição para o Story da Maria (Corrigida!) -->
+    <div id="mariaStoryOverlay" class="story-overlay hidden">
+        <div class="relative w-[393px] h-[852px] flex flex-col items-center justify-between">
+            <img src="img/mariastory.png" 
+                 alt="Story da Maria em Tela Cheia" 
+                 class="w-full h-full border-4 border-black rounded-3xl object-cover"
+                 onerror="this.onerror=null;this.src='https://placehold.co/393x852/000000/FFFFFF?text=IMAGEM+STORY+MARIA';">
+            
+            <button id="closeMariaStoryButton" class="absolute bottom-[20px] w-[148px] h-[33px] bg-[#002c5c] text-white font-bold text-[14px] rounded-14px flex items-center justify-center">
+                Voltar para home
+            </button>
+        </div>
+    </div>
+
+    <!-- Sobreposição para o Story do Ciclano (NOVO e com Swipe!) -->
+    <div id="ciclanoStoryOverlay" class="story-overlay hidden">
+        <div class="relative w-[393px] h-[852px] flex flex-col items-center justify-between">
+            <img id="ciclanoStoryImage" src="img/storyciclano1.png" 
+                 alt="Story do Ciclano" 
+                 class="w-full h-full border-4 border-black rounded-3xl object-cover"
+                 onerror="this.onerror=null;this.src='https://placehold.co/393x852/000000/FFFFFF?text=STORY+CICLANO+1';">
+            
+            <!-- Áreas de clique para navegação (esquerda/direita) -->
+            <div class="story-click-area left" id="ciclanoStoryLeftClick"></div>
+            <div class="story-click-area right" id="ciclanoStoryRightClick"></div>
+            
+            <!-- Caixa de texto e botão de envio para Stories -->
+            <div class="absolute bottom-[20px] w-[350px] flex items-center justify-between px-2">
+                <input type="text" id="ciclanoStoryInput" placeholder="Digite aqui"
+                       class="flex-grow h-[36px] rounded-[18px] border-[2px] border-gray-300 px-4 text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button id="ciclanoStorySendButton" class="w-[54px] h-[36px] bg-[#e5a1ae] rounded-[18px] border-[2px] border-black flex items-center justify-center ml-2">
+                    l<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </button>
+            </div>
+            <!-- Botão de Reação Flutuante - Agora em cima do botão de enviar -->
+            <button id="ciclanoReactionButton" class="absolute right-[25px] bottom-[65px] w-[50px] h-[50px] rounded-full bg-[#e5a1ae] border-[2px] border-black flex items-center justify-center shadow-md z-10">
+                <img src="img/adicionarreacao.png" alt="Adicionar Reação" class="w-[33px] h-[33px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/33x33/e5a1ae/000000?text=R';">
+            </button>
+            <!-- Menu de Reações (Inicialmente Escondido) -->
+            <div id="ciclanoReactionMenu" class="absolute right-[25px] bottom-[125px] w-[50px] h-[95px] rounded-full bg-white shadow-lg p-1 z-20 flex flex-col justify-around items-center hidden" style="border: 1px solid #e5a1ae;">
+                <button id="ciclanoReactionHeart" class="w-[38px] h-[38px] rounded-full bg-[#4f603e] flex items-center justify-center">
+                    <img src="img/coracao.png" alt="Coração" class="w-[31px] h-[26px] object-contain"
+                         onerror="this.onerror=null;this.src='https://placehold.co/31x26/4f603e/FFFFFF?text=♥';">
+                </button>
+                <button id="ciclanoReactionStars" class="w-[38px] h-[38px] rounded-full bg-[#4f603e] flex items-center justify-center mt-1">
+                    <img src="img/estrelinhas.png" alt="Estrelas" class="w-[31px] h-[31px] object-contain"
+                         onerror="this.onerror=null;this.src='https://placehold.co/31x31/4f603e/FFFFFF?text=★';">
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sobreposição para o Story do Amigo A (NOVO e com Swipe!) -->
+    <div id="amigoAStoryOverlay" class="story-overlay hidden">
+        <div class="relative w-[393px] h-[852px] flex flex-col items-center justify-between">
+            <img id="amigoAStoryImage" src="https://placehold.co/393x852/000000/FFFFFF?text=STORY+AMIGO+A" 
+                 alt="Story do Amigo A" 
+                 class="w-full h- border-4 border-black rounded-3xl object-cover"
+                 onerror="this.onerror=null;this.src='https://placehold.co/393x852/000000/FFFFFF?text=STORY+AMIGO+A';">
+            
+            <!-- Áreas de clique para navegação (esquerda/direita) -->
+            <div class="story-click-area left" id="amigoAStoryLeftClick"></div>
+            <div class="story-click-area right" id="amigoAStoryRightClick"></div>
+            
+            <!-- Caixa de texto e botão de envio para Stories -->
+            <div class="absolute bottom-[20px] w-[350px] flex items-center justify-between px-2">
+                <input type="text" id="amigoAStoryInput" placeholder="Digite aqui"
+                       class="flex-grow h-[36px] rounded-[18px] border-[2px] border-gray-300 px-4 text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button id="amigoAStorySendButton" class="w-[54px] h-[36px] bg-[#e5a1ae] rounded-[18px] border-[2px] border-black flex items-center justify-center ml-2">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </button>
+            </div>
+            <!-- Botão de Reação Flutuante -->
+            <button id="amigoAReactionButton" class="absolute right-[25px] bottom-[65px] w-[50px] h-[50px] rounded-full bg-[#e5a1ae] border-[2px] border-black flex items-center justify-center shadow-md z-10">
+                <img src="img/adicionarreacao.png" alt="Adicionar Reação" class="w-[33px] h-[33px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/33x33/e5a1ae/000000?text=R';">
+            </button>
+            <!-- Menu de Reações (Inicialmente Escondido) -->
+            <div id="amigoAReactionMenu" class="absolute right-[25px] bottom-[125px] w-[50px] h-[95px] rounded-full bg-white shadow-lg p-1 z-20 flex flex-col justify-around items-center hidden" style="border: 1px solid #e5a1ae;">
+                <button id="amigoAReactionHeart" class="w-[38px] h-[38px] rounded-full bg-[#4f603e] flex items-center justify-center">
+                    <img src="img/coracao.png" alt="Coração" class="w-[31px] h-[26px] object-contain"
+                         onerror="this.onerror=null;this.src='https://placehold.co/31x26/4f603e/FFFFFF?text=♥';">
+                </button>
+                <button id="amigoAReactionStars" class="w-[38px] h-[38px] rounded-full bg-[#4f603e] flex items-center justify-center mt-1">
+                    <img src="img/estrelinhas.png" alt="Estrelas" class="w-[31px] h-[31px] object-contain"
+                         onerror="this.onerror=null;this.src='https://placehold.co/31x31/4f603e/FFFFFF?text=★';">
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sobreposição para o Story do Amigo B (NOVO e com Swipe!) -->
+    <div id="amigoBStoryOverlay" class="story-overlay hidden">
+        <div class="relative w-[393px] h-[852px] flex flex-col items-center justify-between">
+            <img id="amigoBStoryImage" src="https://placehold.co/393x852/000000/FFFFFF?text=STORY+AMIGO+B" 
+                 alt="Story do Amigo B" 
+                 class="w-full h-full border-4 border-black rounded-3xl object-cover"
+                 onerror="this.onerror=null;this.src='https://placehold.co/393x852/000000/FFFFFF?text=STORY+AMIGO+B';">
+            
+            <!-- Áreas de clique para navegação (esquerda/direita) -->
+            <div class="story-click-area left" id="amigoBStoryLeftClick"></div>
+            <div class="story-click-area right" id="amigoBStoryRightClick"></div>
+            
+            <!-- Caixa de texto e botão de envio para Stories -->
+            <div class="absolute bottom-[20px] w-[350px] flex items-center justify-between px-2">
+                <input type="text" id="amigoBStoryInput" placeholder="Digite aqui"
+                       class="flex-grow h-[36px] rounded-[18px] border-[2px] border-gray-300 px-4 text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button id="amigoBStorySendButton" class="w-[54px] h-[36px] bg-[#e5a1ae] rounded-[18px] border-[2px] border-black flex items-center justify-center ml-2">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </button>
+            </div>
+            <!-- Botão de Reação Flutuante -->
+            <button id="amigoBReactionButton" class="absolute right-[25px] bottom-[65px] w-[50px] h-[50px] rounded-full bg-[#e5a1ae] border-[2px] border-black flex items-center justify-center shadow-md z-10">
+                <img src="img/adicionarreacao.png" alt="Adicionar Reação" class="w-[33px] h-[33px] object-contain"
+                     onerror="this.onerror=null;this.src='https://placehold.co/33x33/e5a1ae/000000?text=R';">
+            </button>
+            <!-- Menu de Reações (Inicialmente Escondido) -->
+            <div id="amigoBReactionMenu" class="absolute right-[25px] bottom-[125px] w-[50px] h-[95px] rounded-full bg-white shadow-lg p-1 z-20 flex flex-col justify-around items-center hidden" style="border: 1px solid #e5a1ae;">
+                <button id="amigoBReactionHeart" class="w-[38px] h-[38px] rounded-full bg-[#4f603e] flex items-center justify-center">
+                    <img src="img/coracao.png" alt="Coração" class="w-[31px] h-[26px] object-contain"
+                         onerror="this.onerror=null;this.src='https://placehold.co/31x26/4f603e/FFFFFF?text=♥';">
+                </button>
+                <button id="amigoBReactionStars" class="w-[38px] h-[38px] rounded-full bg-[#4f603e] flex items-center justify-center mt-1">
+                    <img src="img/estrelinhas.png" alt="Estrelas" class="w-[31px] h-[31px] object-contain"
+                         onerror="this.onerror=null;this.src='https://placehold.co/31x31/4f603e/FFFFFF?text=★';">
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sobreposição para a Tela de Criar Post -->
+    <div id="createPostOverlay" class="create-post-overlay hidden ">
+        <div class="content-wrapper">
+            <!-- Cabeçalho da Tela de Criar Post -->
+            <header class="w-full h-[60px] bg-[#026dad] flex items-center justify-between px-4 shadow-md z-10">
+                <button id="closeCreatePostButton" class="text-white text-2xl font-bold">
+                    &larr; <!-- Seta para a esquerda -->
+                </button>
+                <div class="text-white font-bold text-[25px]">unilink</div>
+                <button id="sendPostButton" class="text-white font-bold text-[20px]">
+                    Enviar
+                </button>
+            </header>
+
+            <!-- Área de Texto para Nova Publicação -->
+            <main class="flex-grow p-4">
+                <textarea id="postContentInput" placeholder="O que você está fazendo?"
+                          class="w-full h-[150px] rounded-[18px] border-[2px] border-gray-300 p-4 text-gray-700 text-[18px] font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-100"></textarea>
+            </main>
+
+            <!-- Rodapé com Ícones de Mídia -->
+            <footer class="w-full h-[60px] bg-transparent flex items-center justify-around border-top-2 px-4 z-10">
+                <div class="flex flex-col items-center">
+                    <img src="img/imagem.png" alt="Adicionar Imagem" class="w-[29px] h-[29px] object-contain cursor-pointer"
+                         onerror="this.onerror=null;this.src='https://placehold.co/29x29/cccccc/FFFFFF?text=IMG';">
+                    <span class="text-black text-[18px]">Imagem</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <img src="img/livro.png" alt="Adicionar Livro" class="w-[29px] h-[29px] object-contain cursor-pointer"
+                         onerror="this.onerror=null;this.src='https://placehold.co/29x29/cccccc/FFFFFF?text=LIVRO';">
+                    <span class="text-black text-[18px]">Livro</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <img src="img/musica.png" alt="Adicionar Música" class="w-[29px] h-[29px] object-contain cursor-pointer"
+                         onerror="this.onerror=null;this.src='https://placehold.co/29x29/cccccc/FFFFFF?text=MUSICA';">
+                    <span class="text-black text-[18px]">Música</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <img src="img/clip.png" alt="Adicionar Arquivo" class="w-[29px] h-[29px] object-contain cursor-pointer"
+                         onerror="this.onerror=null;this.src='https://placehold.co/29x29/cccccc/FFFFFF?text=ARQ';">
+                    <span class="text-black text-[18px]">Arquivo</span>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const filterButton = document.getElementById('filterButton');
+            const filterMenu = document.getElementById('filterMenu');
+            const overlay = document.getElementById('overlay');
+            const fulanoAddIcon = document.getElementById('fulanoAddIcon');
+
+            // Referências para os elementos do story da Maria
+            const mariaStoryCircle = document.getElementById('mariaStoryCircle');
+            const mariaAddButton = document.getElementById('mariaAddButton'); // O + na borda do story da Maria
+            const mariaStoryOverlay = document.getElementById('mariaStoryOverlay');
+            const closeMariaStoryButton = document.getElementById('closeMariaStoryButton');
+            let mariaTouchStartY = 0; // Para o swipe-down da Maria
+
+            // Referências para os elementos do story do Ciclano
+            const ciclanoStoryCircle = document.getElementById('ciclanoStoryCircle');
+            const ciclanoStoryOverlay = document.getElementById('ciclanoStoryOverlay');
+            const ciclanoStoryImage = document.getElementById('ciclanoStoryImage');
+            const ciclanoStoryLeftClick = document.getElementById('ciclanoStoryLeftClick');
+            const ciclanoStoryRightClick = document.getElementById('ciclanoStoryRightClick');
+            const ciclanoStoryInput = document.getElementById('ciclanoStoryInput');
+            const ciclanoStorySendButton = document.getElementById('ciclanoStorySendButton');
+            const ciclanoReactionButton = document.getElementById('ciclanoReactionButton');
+            const ciclanoReactionMenu = document.getElementById('ciclanoReactionMenu');
+            const ciclanoReactionHeart = document.getElementById('ciclanoReactionHeart');
+            const ciclanoReactionStars = document.getElementById('ciclanoReactionStars');
+            const ciclanoStories = ['img/storyciclano1.png', 'img/storyciclano2.png'];
+            let currentCiclanoStoryIndex = 0;
+            let ciclanoTouchStartY = 0;
+
+            // Referências para os stories do Amigo A e B
+            const amigoAStoryCircle = document.getElementById('amigoAStoryCircle');
+            const amigoAStoryOverlay = document.getElementById('amigoAStoryOverlay');
+            const amigoAStoryImage = document.getElementById('amigoAStoryImage'); 
+            const amigoAStoryLeftClick = document.getElementById('amigoAStoryLeftClick'); 
+            const amigoAStoryRightClick = document.getElementById('amigoAStoryRightClick'); 
+            const amigoAStoryInput = document.getElementById('amigoAStoryInput');
+            const amigoAStorySendButton = document.getElementById('amigoAStorySendButton');
+            const amigoAReactionButton = document.getElementById('amigoAReactionButton');
+            const amigoAReactionMenu = document.getElementById('amigoAReactionMenu');
+            const amigoAReactionHeart = document.getElementById('amigoAReactionHeart');
+            const amigoAReactionStars = document.getElementById('amigoAReactionStars');
+            let amigoATouchStartY = 0;
+            const amigoAStories = ['https://placehold.co/393x852/000000/FFFFFF?text=STORY+AMIGO+A+1', 'https://placehold.co/393x852/000000/FFFFFF?text=STORY+AMIGO+A+2'];
+            let currentAmigoAStoryIndex = 0;
+
+
+            const amigoBStoryCircle = document.getElementById('amigoBStoryCircle');
+            const amigoBStoryOverlay = document.getElementById('amigoBStoryOverlay');
+            const amigoBStoryImage = document.getElementById('amigoBStoryImage'); 
+            const amigoBStoryLeftClick = document.getElementById('amigoBStoryLeftClick'); 
+            const amigoBStoryRightClick = document.getElementById('amigoBStoryRightClick'); 
+            const amigoBStoryInput = document.getElementById('amigoBStoryInput');
+            const amigoBStorySendButton = document.getElementById('amigoBStorySendButton');
+            const amigoBReactionButton = document.getElementById('amigoBReactionButton');
+            const amigoBReactionMenu = document.getElementById('amigoBReactionMenu');
+            const amigoBReactionHeart = document.getElementById('amigoBReactionHeart');
+            const amigoBReactionStars = document.getElementById('amigoBReactionStars');
+            let amigoBTouchStartY = 0;
+            const amigoBStories = ['https://placehold.co/393x852/000000/FFFFFF?text=STORY+AMIGO+B+1', 'https://placehold.co/393x852/000000/FFFFFF?text=STORY+AMIGO+B+2'];
+            let currentAmigoBStoryIndex = 0;
+
+            // Referências para a tela de Criar Post
+            const createPostFab = document.getElementById('createPostFab');
+            const createPostOverlay = document.getElementById('createPostOverlay');
+            const closeCreatePostButton = document.getElementById('closeCreatePostButton');
+            const sendPostButton = document.getElementById('sendPostButton');
+            const postContentInput = document.getElementById('postContentInput');
+
+
+            // --- Funções Comuns ---
+
+            // Função para alternar a visibilidade do menu de filtro
+            function toggleFilterMenu() {
+                if (filterMenu) { // Check if element exists
+                    if (filterMenu.classList.contains('hidden')) {
+                        filterMenu.classList.remove('hidden');
+                        if (overlay) overlay.style.display = 'block'; // Mostra a sobreposição escura
+                    } else {
+                        filterMenu.classList.add('hidden');
+                        if (overlay) overlay.style.display = 'none'; // Esconde a sobreposição escura
+                    }
+                }
+            }
+
+            // Função para fechar qualquer overlay (stories e criar post)
+            function closeAllOverlays() {
+                if (mariaStoryOverlay) mariaStoryOverlay.classList.add('hidden');
+                if (ciclanoStoryOverlay) ciclanoStoryOverlay.classList.add('hidden');
+                if (amigoAStoryOverlay) amigoAStoryOverlay.classList.add('hidden');
+                if (amigoBStoryOverlay) amigoBStoryOverlay.classList.add('hidden');
+                if (createPostOverlay) createPostOverlay.classList.add('hidden'); // Fecha a tela de criar post
+                // Garante que os menus de reação estejam escondidos ao fechar overlays
+                if (ciclanoReactionMenu) ciclanoReactionMenu.classList.add('hidden');
+                if (amigoAReactionMenu) amigoAReactionMenu.classList.add('hidden');
+                if (amigoBReactionMenu) amigoBReactionMenu.classList.add('hidden');
+            }
+
+            // Função para lidar com o swipe-down em qualquer story overlay
+            function setupSwipeToClose(overlayElement, touchStartYVarName) {
+                if (overlayElement) { // Check if element exists
+                    overlayElement.addEventListener('touchstart', (e) => {
+                        window[touchStartYVarName] = e.touches[0].clientY;
+                    });
+
+                    overlayElement.addEventListener('touchend', (e) => {
+                        const touchEndY = e.changedTouches[0].clientY;
+                        if (touchEndY - window[touchStartYVarName] > 80) { // Se arrastou para baixo mais de 80px (maior sensibilidade)
+                            closeAllOverlays();
+                        }
+                    });
+                }
+            }
+
+            // --- Lógica do Filtro ---
+            if (filterButton) { // Check if element exists
+                filterButton.addEventListener('click', function(event) {
+                    event.stopPropagation(); // Impede que o clique no botão se propague para o overlay ou body
+                    toggleFilterMenu();
+                });
+            }
+
+            if (overlay) { // Check if element exists
+                overlay.addEventListener('click', function() {
+                    toggleFilterMenu();
+                });
+            }
+
+            document.addEventListener('click', function(event) {
+                // Ensure filterMenu and its button exist before checking contains
+                const isClickInsideFilterMenu = (filterMenu && filterButton) ? 
+                                                (filterButton.contains(event.target) || filterMenu.contains(event.target)) : false;
+
+                if (!isClickInsideFilterMenu && filterMenu && !filterMenu.classList.contains('hidden')) {
+                    toggleFilterMenu();
+                }
+            });
+
+            // Lógica para filtrar tweets
+            const tweetCards = document.querySelectorAll('.tweet-card');
+            const jobFilterSwitch = document.getElementById('jobFilterSwitch');
+            const campusSelect = document.getElementById('campusSelect');
+            const campusLabel = document.getElementById('campusLabel');
+
+            function applyFilters() {
+                const jobFilterActive = jobFilterSwitch ? jobFilterSwitch.checked : false;
+                const selectedCampus = campusSelect ? campusSelect.value : 'todos';
+
+                // Desabilitar/habilitar filtro de Campus/Prédio
+                if (campusSelect && campusLabel) { // Ensure elements exist
+                    if (jobFilterActive) {
+                        campusSelect.disabled = true;
+                        campusSelect.classList.add('opacity-50');
+                        campusSelect.classList.remove('text-white');
+                        campusSelect.classList.add('text-gray-400');
+                        campusLabel.classList.add('opacity-50', 'text-gray-400');
+                        campusLabel.classList.remove('text-gray-800');
+                    } else {
+                        campusSelect.disabled = false;
+                        campusSelect.classList.remove('opacity-50');
+                        campusSelect.classList.remove('text-gray-400');
+                        campusSelect.classList.add('text-white');
+                        campusLabel.classList.remove('opacity-50', 'text-gray-400');
+                        campusLabel.classList.add('text-gray-800');
+                    }
+                }
+
+                tweetCards.forEach(card => {
+                    const isJobOpening = card.dataset.type === 'job-opening';
+                    const cardCampus = card.dataset.campus;
+
+                    let showCard = true;
+
+                    if (jobFilterActive) {
+                        showCard = isJobOpening;
+                    } else {
+                        if (selectedCampus === 'todos') {
+                            showCard = true;
+                        } else if (cardCampus !== selectedCampus && !isJobOpening) {
+                            showCard = false;
+                        } else if (isJobOpening) {
+                            showCard = true;
+                        }
+                    }
+
+                    if (showCard) {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Event listeners para os filtros
+            if (jobFilterSwitch) jobFilterSwitch.addEventListener('change', applyFilters);
+            if (campusSelect) campusSelect.addEventListener('change', applyFilters);
+
+            // Aplica os filtros na carga inicial da página
+            applyFilters();
+
+            // --- Lógica das Estrelas de Avaliação ---
+            const starRatings = document.querySelectorAll('.star-rating');
+            starRatings.forEach(ratingContainer => {
+                const stars = ratingContainer.querySelectorAll('img');
+                const currentRating = parseInt(ratingContainer.dataset.rating);
+
+                function updateStars(value) {
+                    stars.forEach((star, index) => {
+                        star.src = (index < value) ? 'img/estrelaacesa.png' : 'img/estrelaapagada.png';
+                        star.onerror = null;
+                    });
+                    ratingContainer.dataset.rating = value;
+                }
+                updateStars(currentRating);
+                stars.forEach(star => {
+                    star.addEventListener('click', function() {
+                        const value = parseInt(this.dataset.value);
+                        updateStars(value);
+                        console.log('Avaliação enviada:', value);
+                    });
+                });
+            });
+
+            // --- Lógica do Ícone de Adicionar do Fulano ---
+            if (fulanoAddIcon) {
+                fulanoAddIcon.addEventListener('click', function() {
+                    this.classList.add('hidden');
+                });
+            }
+
+            // --- Lógica do Story da Maria ---
+            if (mariaStoryCircle) {
+                mariaStoryCircle.addEventListener('click', function() {
+                    closeAllOverlays(); // Garante que outros overlays estão fechados
+                    if (mariaStoryOverlay) mariaStoryOverlay.classList.remove('hidden');
+                });
+            }
+            if (mariaAddButton) {
+                mariaAddButton.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    closeAllOverlays(); // Garante que outros overlays estão fechados
+                    if (mariaStoryOverlay) mariaStoryOverlay.classList.remove('hidden');
+                });
+            }
+            if (closeMariaStoryButton) {
+                closeMariaStoryButton.addEventListener('click', function() {
+                    if (mariaStoryOverlay) mariaStoryOverlay.classList.add('hidden');
+                });
+            }
+            if (mariaStoryOverlay) {
+                setupSwipeToClose(mariaStoryOverlay, 'mariaTouchStartY');
+            }
+
+            // --- Lógica do Story do Ciclano ---
+            function showCiclanoStory(index) {
+                if (ciclanoStoryImage && ciclanoStories.length > 0) { // Check before accessing array
+                    if (index >= 0 && index < ciclanoStories.length) {
+                        currentCiclanoStoryIndex = index;
+                        ciclanoStoryImage.src = ciclanoStories[currentCiclanoStoryIndex];
+                        ciclanoStoryImage.onerror = function() {
+                            this.onerror = null;
+                            this.src = 'https://placehold.co/393x852/000000/FFFFFF?text=STORY+CICLANO+ERRO';
+                        };
+                    } else if (index >= ciclanoStories.length) {
+                        closeAllOverlays();
+                        openAmigoAStory();
+                    } else if (index < 0) {
+                        closeAllOverlays();
+                    }
+                }
+            }
+
+            function openCiclanoStory() {
+                closeAllOverlays();
+                if (ciclanoStoryOverlay) ciclanoStoryOverlay.classList.remove('hidden');
+                currentCiclanoStoryIndex = 0;
+                showCiclanoStory(currentCiclanoStoryIndex);
+                if (ciclanoStoryInput) ciclanoStoryInput.value = '';
+                if (ciclanoReactionMenu) ciclanoReactionMenu.classList.add('hidden');
+            }
+
+            if (ciclanoStoryCircle) {
+                ciclanoStoryCircle.addEventListener('click', openCiclanoStory);
+            }
+
+            if (ciclanoStoryLeftClick) {
+                ciclanoStoryLeftClick.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    if (currentCiclanoStoryIndex > 0) {
+                        showCiclanoStory(currentCiclanoStoryIndex - 1);
+                    }
+                });
+            }
+            if (ciclanoStoryRightClick) {
+                ciclanoStoryRightClick.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    showCiclanoStory(currentCiclanoStoryIndex + 1);
+                });
+            }
+            if (ciclanoStoryOverlay) {
+                setupSwipeToClose(ciclanoStoryOverlay, 'ciclanoTouchStartY');
+            }
+            if (ciclanoStoryInput && ciclanoStorySendButton) {
+                ciclanoStorySendButton.addEventListener('click', function() {
+                    if (ciclanoStoryInput.value.trim() !== '') {
+                        console.log("Mensagem Ciclano: " + ciclanoStoryInput.value);
+                        ciclanoStoryInput.value = '';
+                    }
+                });
+            }
+            if (ciclanoReactionButton) {
+                ciclanoReactionButton.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    if (ciclanoReactionMenu) ciclanoReactionMenu.classList.toggle('hidden');
+                });
+            }
+            if (ciclanoReactionHeart) {
+                ciclanoReactionHeart.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    console.log('Reação Ciclano: Coração');
+                    if (ciclanoReactionMenu) ciclanoReactionMenu.classList.add('hidden');
+                });
+            }
+            if (ciclanoReactionStars) {
+                ciclanoReactionStars.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    console.log('Reação Ciclano: Estrelas');
+                    if (ciclanoReactionMenu) ciclanoReactionMenu.classList.add('hidden');
+                });
+            }
+            if (ciclanoStoryOverlay) {
+                ciclanoStoryOverlay.addEventListener('click', function(event) {
+                    if (ciclanoReactionButton && ciclanoReactionMenu && !ciclanoReactionButton.contains(event.target) && !ciclanoReactionMenu.contains(event.target) && !ciclanoReactionMenu.classList.contains('hidden')) {
+                        ciclanoReactionMenu.classList.add('hidden');
+                    }
+                });
+            }
+
+
+            // --- Lógica do Story do Amigo A ---
+            function showAmigoAStory(index = 0) {
+                closeAllOverlays();
+                if (amigoAStoryOverlay) amigoAStoryOverlay.classList.remove('hidden');
+                currentAmigoAStoryIndex = index;
+                if (amigoAStoryImage && amigoAStories.length > 0) { // Check before accessing array
+                    amigoAStoryImage.src = amigoAStories[currentAmigoAStoryIndex];
+                    amigoAStoryImage.onerror = function() {
+                        this.onerror = null;
+                        this.src = 'https://placehold.co/393x852/000000/FFFFFF?text=STORY+AMIGO+A+ERRO';
+                    };
+                }
+                if (amigoAStoryInput) amigoAStoryInput.value = '';
+                if (amigoAReactionMenu) amigoAReactionMenu.classList.add('hidden');
+            }
+
+            function openAmigoAStory() {
+                closeAllOverlays();
+                if (amigoAStoryOverlay) amigoAStoryOverlay.classList.remove('hidden');
+                currentAmigoAStoryIndex = 0;
+                showAmigoAStory(currentAmigoAStoryIndex);
+            }
+
+            if (amigoAStoryCircle) {
+                amigoAStoryCircle.addEventListener('click', openAmigoAStory);
+            }
+            
+            if (amigoAStoryOverlay) {
+                setupSwipeToClose(amigoAStoryOverlay, 'amigoATouchStartY');
+            }
+            if (amigoAStoryLeftClick) {
+                amigoAStoryLeftClick.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    if (currentAmigoAStoryIndex > 0) {
+                        showAmigoAStory(currentAmigoAStoryIndex - 1);
+                    } else {
+                        closeAllOverlays();
+                        openCiclanoStory(ciclanoStories.length - 1);
+                    }
+                });
+            }
+            if (amigoAStoryRightClick) {
+                amigoAStoryRightClick.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    if (currentAmigoAStoryIndex < amigoAStories.length - 1) {
+                        showAmigoAStory(currentAmigoAStoryIndex + 1);
+                    } else {
+                        closeAllOverlays();
+                        openAmigoBStory();
+                    }
+                });
+            }
+            if (amigoAStoryInput && amigoAStorySendButton) {
+                amigoAStorySendButton.addEventListener('click', function() {
+                    if (amigoAStoryInput.value.trim() !== '') {
+                        console.log("Mensagem Amigo A: " + amigoAStoryInput.value);
+                        amigoAStoryInput.value = '';
+                    }
+                });
+            }
+            if (amigoAReactionButton) {
+                amigoAReactionButton.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    if (amigoAReactionMenu) amigoAReactionMenu.classList.toggle('hidden');
+                });
+            }
+            if (amigoAReactionHeart) {
+                amigoAReactionHeart.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    console.log('Reação Amigo A: Coração');
+                    if (amigoAReactionMenu) amigoAReactionMenu.classList.add('hidden');
+                });
+            }
+            if (amigoAReactionStars) {
+                amigoAReactionStars.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    console.log('Reação Amigo A: Estrelas');
+                    if (amigoAReactionMenu) amigoAReactionMenu.classList.add('hidden');
+                });
+            }
+            if (amigoAStoryOverlay) {
+                amigoAStoryOverlay.addEventListener('click', function(event) {
+                    if (amigoAReactionButton && amigoAReactionMenu && !amigoAReactionButton.contains(event.target) && !amigoAReactionMenu.contains(event.target) && !amigoAReactionMenu.classList.contains('hidden')) {
+                        amigoAReactionMenu.classList.add('hidden');
+                    }
+                });
+            }
+
+
+            // --- Lógica do Story do Amigo B ---
+            function showAmigoBStory(index = 0) {
+                closeAllOverlays();
+                if (amigoBStoryOverlay) amigoBStoryOverlay.classList.remove('hidden');
+                currentAmigoBStoryIndex = index;
+                if (amigoBStoryImage && amigoBStories.length > 0) { // Check before accessing array
+                    amigoBStoryImage.src = amigoBStories[currentAmigoBStoryIndex];
+                    amigoBStoryImage.onerror = function() {
+                        this.onerror = null;
+                        this.src = 'https://placehold.co/393x852/000000/FFFFFF?text=STORY+AMIGO+B+ERRO';
+                    };
+                }
+                if (amigoBStoryInput) amigoBStoryInput.value = '';
+                if (amigoBReactionMenu) amigoBReactionMenu.classList.add('hidden');
+            }
+
+            function openAmigoBStory() {
+                closeAllOverlays();
+                if (amigoBStoryOverlay) amigoBStoryOverlay.classList.remove('hidden');
+                currentAmigoBStoryIndex = 0;
+                showAmigoBStory(currentAmigoBStoryIndex);
+            }
+
+            if (amigoBStoryCircle) {
+                amigoBStoryCircle.addEventListener('click', openAmigoBStory);
+            }
+            if (amigoBStoryOverlay) {
+                setupSwipeToClose(amigoBStoryOverlay, 'amigoBTouchStartY');
+            }
+            if (amigoBStoryLeftClick) {
+                amigoBStoryLeftClick.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    if (currentAmigoBStoryIndex > 0) {
+                        showAmigoBStory(currentAmigoBStoryIndex - 1);
+                    } else {
+                        closeAllOverlays();
+                        openAmigoAStory(amigoAStories.length - 1);
+                    }
+                });
+            }
+            if (amigoBStoryRightClick) {
+                amigoBStoryRightClick.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    if (currentAmigoBStoryIndex < amigoBStories.length - 1) {
+                        showAmigoBStory(currentAmigoBStoryIndex + 1);
+                    } else {
+                        closeAllOverlays();
+                    }
+                });
+            }
+            if (amigoBStorySendButton) {
+                amigoBStorySendButton.addEventListener('click', function() {
+                    if (amigoBStoryInput.value.trim() !== '') {
+                        console.log("Mensagem Amigo B: " + amigoBStoryInput.value);
+                        amigoBStoryInput.value = '';
+                    }
+                });
+            }
+            if (amigoBReactionButton) {
+                amigoBReactionButton.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    if (amigoBReactionMenu) amigoBReactionMenu.classList.toggle('hidden');
+                });
+            }
+            if (amigoBReactionHeart) {
+                amigoBReactionHeart.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    console.log('Reação Amigo B: Coração');
+                    if (amigoBReactionMenu) amigoBReactionMenu.classList.add('hidden');
+                });
+            }
+            if (amigoBReactionStars) {
+                amigoBReactionStars.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    console.log('Reação Amigo B: Estrelas');
+                    if (amigoBReactionMenu) amigoBReactionMenu.classList.add('hidden');
+                });
+            }
+            if (amigoBStoryOverlay) {
+                amigoBStoryOverlay.addEventListener('click', function(event) {
+                    if (amigoBReactionButton && amigoBReactionMenu && !amigoBReactionButton.contains(event.target) && !amigoBReactionMenu.contains(event.target) && !amigoBReactionMenu.classList.contains('hidden')) {
+                        amigoBReactionMenu.classList.add('hidden');
+                    }
+                });
+            }
+
+            // --- Lógica da Tela de Criar Post ---
+            if (createPostFab) {
+                createPostFab.addEventListener('click', function() {
+                    closeAllOverlays(); // Fecha outros overlays antes de abrir
+                    if (createPostOverlay) createPostOverlay.classList.remove('hidden');
+                    if (postContentInput) postContentInput.value = ''; // Limpa o input ao abrir
+                });
+            }
+
+            if (closeCreatePostButton) {
+                closeCreatePostButton.addEventListener('click', function() {
+                    if (createPostOverlay) createPostOverlay.classList.add('hidden');
+                });
+            }
+
+            if (sendPostButton) {
+                sendPostButton.addEventListener('click', function() {
+                    if (postContentInput && postContentInput.value.trim() !== '') {
+                        console.log("Novo Post: " + postContentInput.value);
+                        // Aqui você enviaria o post para um backend, amada!
+                    }
+                    if (createPostOverlay) createPostOverlay.classList.add('hidden'); // Fecha a tela após enviar
+                });
+            }
+        }); // Fim do DOMContentLoaded
+    </script>
+</body>
+</html>
